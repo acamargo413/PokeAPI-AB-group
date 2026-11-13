@@ -61,6 +61,7 @@ interface PokemonListResponse {
 async function obtenerPokemon(
   nombre: string
 ): Promise<Pokemon> {
+
   const response =
     await fetch(
       `${API_URL}/${encodeURIComponent(nombre)}`
@@ -82,6 +83,7 @@ async function obtenerPokemon(
 }
 
 async function buscarPokemon(): Promise<void> {
+
   const nombre =
     searchInput.value
       .trim()
@@ -101,6 +103,7 @@ async function buscarPokemon(): Promise<void> {
   paginationContainer.innerHTML = "";
 
   try {
+
     const response =
       await fetch(
         `${API_URL}/search?name=${encodeURIComponent(nombre)}`
@@ -157,13 +160,27 @@ function mostrarPokemonBusqueda(
       </p>
 
       <button
-        onclick="mostrarDetalles('${pokemon.name}')"
+        id="searchDetailsButton"
       >
         Ver detalles
       </button>
 
     </div>
   `;
+
+  const button =
+    document.getElementById(
+      "searchDetailsButton"
+    ) as HTMLButtonElement;
+
+  button.addEventListener(
+    "click",
+    () => {
+      mostrarDetalles(
+        pokemon.name
+      );
+    }
+  );
 }
 
 async function cargarPokemons(
@@ -184,10 +201,6 @@ async function cargarPokemons(
     let url =
       `${API_URL}?page=${page}&limit=${limit}`;
 
-    /*
-     * Si se seleccionó un tipo,
-     * lo enviamos al backend.
-     */
     if (tipo) {
       url +=
         `&type=${encodeURIComponent(tipo)}`;
@@ -328,6 +341,10 @@ function mostrarPaginacion(
   anterior.addEventListener(
     "click",
     () => {
+
+      detailsContainer.innerHTML =
+        "";
+
       cargarPokemons(
         pagination.page - 1
       );
@@ -357,6 +374,10 @@ function mostrarPaginacion(
   siguiente.addEventListener(
     "click",
     () => {
+
+      detailsContainer.innerHTML =
+        "";
+
       cargarPokemons(
         pagination.page + 1
       );
@@ -456,8 +477,31 @@ async function mostrarDetalles(
           }
         </p>
 
+        <button id="closeDetails">
+          Cerrar detalles
+        </button>
+
       </div>
     `;
+
+    const closeButton =
+      document.getElementById(
+        "closeDetails"
+      ) as HTMLButtonElement;
+
+    closeButton.addEventListener(
+      "click",
+      () => {
+
+        detailsContainer.innerHTML =
+          "";
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+    );
 
     detailsContainer.scrollIntoView({
       behavior: "smooth"
@@ -510,6 +554,10 @@ searchInput.addEventListener(
 typeFilter.addEventListener(
   "change",
   () => {
+
+    detailsContainer.innerHTML =
+      "";
+
     cargarPokemons(1);
   }
 );
