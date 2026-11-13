@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Pokémon Explorer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #222;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .search-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #search {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    #typeFilter {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: white;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #333;
+      color: white;
+      font-size: 14px;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #results {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    .pokemon-card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .pokemon-card img {
+      width: 130px;
+      height: 130px;
+      object-fit: contain;
+    }
+
+    .pokemon-card h3 {
+      margin: 10px 0;
+      text-transform: capitalize;
+    }
+
+    .pokemon-card button {
+      margin-top: 10px;
+    }
+
+    #pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 25px 0;
+      flex-wrap: wrap;
+    }
+
+    #details {
+      margin-top: 30px;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .pokemon-details {
+      text-align: center;
+    }
+
+    .pokemon-details img {
+      max-width: 200px;
+      width: 100%;
+    }
+
+    .pokemon-details ul {
+      max-width: 400px;
+      margin: auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    .pokemon-details li {
+      padding: 8px;
+      margin-bottom: 5px;
+      background: #f1f1f1;
+      border-radius: 6px;
+    }
+
+    .pokemon-details h3 {
+      margin-top: 25px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+
+      .search-container {
+        flex-direction: column;
+      }
+
+      #search,
+      #typeFilter,
+      .search-container button {
+        width: 100%;
+      }
+
+      #results {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+
+      .pokemon-card {
+        padding: 10px;
+      }
+
+      .pokemon-card img {
+        width: 100px;
+        height: 100px;
+      }
+
+      #details {
+        padding: 15px;
+      }
+    }
+
+    @media (min-width: 601px)
+      and (max-width: 900px) {
+      #results {
+        grid-template-columns:
+          repeat(3, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>
+      Pokémon Explorer
+    </h1>
+
+    <div class="search-container">
+
+      <input
+        type="text"
+        id="search"
+        placeholder="Buscar Pokémon..."
+        autocomplete="off"
+      >
+
+      <select id="typeFilter">
+        <option value="">
+          Todos los tipos
+        </option>
+
+        <option value="normal">
+          Normal
+        </option>
+
+        <option value="fire">
+          Fire
+        </option>
+
+        <option value="water">
+          Water
+        </option>
+
+        <option value="electric">
+          Electric
+        </option>
+
+        <option value="grass">
+          Grass
+        </option>
+
+        <option value="ice">
+          Ice
+        </option>
+
+        <option value="fighting">
+          Fighting
+        </option>
+
+        <option value="poison">
+          Poison
+        </option>
+
+        <option value="ground">
+          Ground
+        </option>
+
+        <option value="flying">
+          Flying
+        </option>
+
+        <option value="psychic">
+          Psychic
+        </option>
+
+        <option value="bug">
+          Bug
+        </option>
+
+        <option value="rock">
+          Rock
+        </option>
+
+        <option value="ghost">
+          Ghost
+        </option>
+
+        <option value="dragon">
+          Dragon
+        </option>
+
+        <option value="dark">
+          Dark
+        </option>
+
+        <option value="steel">
+          Steel
+        </option>
+
+        <option value="fairy">
+          Fairy
+        </option>
+      </select>
+
+      <button id="searchButton">
+        Buscar
+      </button>
+
+    </div>
+
+    <div id="results">
+      <p>
+        Cargando Pokémon...
+      </p>
+    </div>
+
+    <div id="pagination"></div>
+
+    <div id="details"></div>
+
+  </div>
+
+  <!-- TypeScript compilado -->
+  <script
+    type="module"
+    src="./dist/components/main.js"
+  ></script>
+
+</body>
+</html>
