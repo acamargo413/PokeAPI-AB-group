@@ -1,26 +1,33 @@
 import express from "express";
 import cors from "cors";
-import collectionRoutes
-  from "./routes/collection.routes.js";
-import pokemonRoutes
-  from "./routes/pokemon.routes.js";
-import favoriteRoutes
-  from "./routes/favorite.routes.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
+import pokemonRoutes from "./routes/pokemon.routes.js";
+import collectionRoutes from "./routes/collection.routes.js";
+import favoriteRoutes from "./routes/favorite.routes.js";
 
 const app = express();
 
-
 app.use(cors());
-
 app.use(express.json());
 
+// Obtener rutas absolutas
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Servir frontend
+app.use(
+  express.static(
+    path.join(__dirname, "../..")
+  )
+);
+
+// Rutas API
 app.use(
   "/api/pokemon",
   pokemonRoutes
-);  
-
+);
 
 app.use(
   "/api/collections",
@@ -32,17 +39,10 @@ app.use(
   favoriteRoutes
 );
 
-
 const PORT = 3000;
 
-
-app.listen(
-  PORT,
-  () => {
-
-    console.log(
-      `Servidor ejecutándose en http://localhost:${PORT}`
-    );
-
-  }
-);
+app.listen(PORT, () => {
+  console.log(
+    `Servidor ejecutándose en http://localhost:${PORT}`
+  );
+});

@@ -6,8 +6,7 @@ import {
   deleteFavoriteController
 } from "../controllers/favorite.controller.js";
 
-const router =
-  Router();
+const router = Router();
 
 router.post(
   "/:collectionId/favorites",

@@ -7,32 +7,22 @@ import {
   deleteCollectionController
 } from "../controllers/collection.controller.js";
 
-const router =
-  Router();
-
-//POST
-
+const router = Router();
 
 router.post(
   "/",
   createCollectionController
 );
 
-//GET
-
 router.get(
   "/",
   getCollectionsController
 );
 
-//PUT
-
 router.put(
   "/:id",
   updateCollectionController
 );
-
-//DELETE
 
 router.delete(
   "/:id",

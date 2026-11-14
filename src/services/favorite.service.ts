@@ -11,59 +11,87 @@ export interface Favorite {
 export const addFavorite = async (
   pokemonId: number,
   pokemonName: string,
-  collectionId: number
+  collectionId: number,
+  organizationId: number
 ): Promise<Favorite> => {
+
   const result = await pool.query(
     `
     INSERT INTO favorites
       (pokemon_id, pokemon_name, collection_id)
-    VALUES
-      ($1, $2, $3)
+    SELECT
+      $1,
+      $2,
+      c.id
+    FROM collections c
+    WHERE c.id = $3
+      AND c.organization_id = $4
     RETURNING *
     `,
     [
       pokemonId,
       pokemonName,
-      collectionId
+      collectionId,
+      organizationId
     ]
   );
+
+  if (result.rows.length === 0) {
+    throw new Error(
+      "Colección no encontrada en esta organización"
+    );
+  }
 
   return result.rows[0];
 };
 
+
 export const getFavoritesByCollection =
   async (
-    collectionId: number
+    collectionId: number,
+    organizationId: number
   ): Promise<Favorite[]> => {
 
     const result = await pool.query(
       `
-      SELECT *
-      FROM favorites
-      WHERE collection_id = $1
-      ORDER BY id
+      SELECT f.*
+      FROM favorites f
+      INNER JOIN collections c
+        ON c.id = f.collection_id
+      WHERE f.collection_id = $1
+        AND c.organization_id = $2
+      ORDER BY f.id
       `,
-      [collectionId]
+      [
+        collectionId,
+        organizationId
+      ]
     );
 
     return result.rows;
   };
 
+
 export const deleteFavorite =
   async (
     collectionId: number,
-    pokemonId: number
+    pokemonId: number,
+    organizationId: number
   ): Promise<boolean> => {
 
     const result = await pool.query(
       `
-      DELETE FROM favorites
-      WHERE collection_id = $1
-        AND pokemon_id = $2
+      DELETE FROM favorites f
+      USING collections c
+      WHERE f.collection_id = c.id
+        AND f.collection_id = $1
+        AND f.pokemon_id = $2
+        AND c.organization_id = $3
       `,
       [
         collectionId,
-        pokemonId
+        pokemonId,
+        organizationId
       ]
     );
 

@@ -19,28 +19,41 @@ export const createCollectionController =
 
     try {
 
-      const name =
-        typeof req.body.name === "string"
-          ? req.body.name.trim()
-          : "";
+      const {
+        name,
+        organizationId
+      } = req.body;
 
-      if (!name) {
+      const orgId = Number(organizationId);
+
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        !Number.isInteger(orgId) ||
+        orgId < 1
+      ) {
         res.status(400).json({
           message:
-            "El nombre de la colección es obligatorio"
+            "name y organizationId son obligatorios"
         });
 
         return;
       }
 
       const collection =
-        await createCollection(name);
+        await createCollection(
+          name.trim(),
+          orgId
+        );
 
-      res.status(201).json(
-        collection
-      );
+      res.status(201).json(collection);
 
     } catch (error) {
+
+      console.error(
+        "Error al crear colección:",
+        error
+      );
 
       res.status(500).json({
         message:
@@ -58,14 +71,34 @@ export const getCollectionsController =
 
     try {
 
-      const collections =
-        await getCollections();
+      const organizationId =
+        Number(req.query.organizationId);
 
-      res.status(200).json(
-        collections
-      );
+      if (
+        !Number.isInteger(organizationId) ||
+        organizationId < 1
+      ) {
+        res.status(400).json({
+          message:
+            "organizationId es obligatorio"
+        });
+
+        return;
+      }
+
+      const collections =
+        await getCollections(
+          organizationId
+        );
+
+      res.status(200).json(collections);
 
     } catch (error) {
+
+      console.error(
+        "Error al obtener colecciones:",
+        error
+      );
 
       res.status(500).json({
         message:
@@ -86,27 +119,25 @@ export const updateCollectionController =
       const id =
         Number(req.params.id);
 
-      const name =
-        typeof req.body.name === "string"
-          ? req.body.name.trim()
-          : "";
+      const {
+        name,
+        organizationId
+      } = req.body;
+
+      const orgId =
+        Number(organizationId);
 
       if (
         !Number.isInteger(id) ||
-        id < 1
+        id < 1 ||
+        typeof name !== "string" ||
+        !name.trim() ||
+        !Number.isInteger(orgId) ||
+        orgId < 1
       ) {
         res.status(400).json({
           message:
-            "El ID no es válido"
-        });
-
-        return;
-      }
-
-      if (!name) {
-        res.status(400).json({
-          message:
-            "El nombre de la colección es obligatorio"
+            "id, name y organizationId son obligatorios"
         });
 
         return;
@@ -115,23 +146,28 @@ export const updateCollectionController =
       const collection =
         await updateCollection(
           id,
-          name
+          name.trim(),
+          orgId
         );
 
       if (!collection) {
+
         res.status(404).json({
           message:
-            "Colección no encontrada"
+            "Colección no encontrada en esta organización"
         });
 
         return;
       }
 
-      res.status(200).json(
-        collection
-      );
+      res.status(200).json(collection);
 
     } catch (error) {
+
+      console.error(
+        "Error al actualizar colección:",
+        error
+      );
 
       res.status(500).json({
         message:
@@ -152,25 +188,34 @@ export const deleteCollectionController =
       const id =
         Number(req.params.id);
 
+      const organizationId =
+        Number(req.query.organizationId);
+
       if (
         !Number.isInteger(id) ||
-        id < 1
+        id < 1 ||
+        !Number.isInteger(organizationId) ||
+        organizationId < 1
       ) {
         res.status(400).json({
           message:
-            "El ID no es válido"
+            "id y organizationId son obligatorios"
         });
 
         return;
       }
 
       const deleted =
-        await deleteCollection(id);
+        await deleteCollection(
+          id,
+          organizationId
+        );
 
       if (!deleted) {
+
         res.status(404).json({
           message:
-            "Colección no encontrada"
+            "Colección no encontrada en esta organización"
         });
 
         return;
@@ -179,6 +224,11 @@ export const deleteCollectionController =
       res.status(204).send();
 
     } catch (error) {
+
+      console.error(
+        "Error al eliminar colección:",
+        error
+      );
 
       res.status(500).json({
         message:

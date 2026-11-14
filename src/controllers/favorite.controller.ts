@@ -9,6 +9,7 @@ import {
   deleteFavorite
 } from "../services/favorite.service.js";
 
+
 export const addFavoriteController =
   async (
     req: Request,
@@ -22,8 +23,12 @@ export const addFavoriteController =
 
       const {
         pokemonId,
-        pokemonName
+        pokemonName,
+        organizationId
       } = req.body;
+
+      const orgId =
+        Number(organizationId);
 
       if (
         !Number.isInteger(collectionId) ||
@@ -61,16 +66,27 @@ export const addFavoriteController =
         return;
       }
 
+      if (
+        !Number.isInteger(orgId) ||
+        orgId < 1
+      ) {
+        res.status(400).json({
+          message:
+            "organizationId es obligatorio"
+        });
+
+        return;
+      }
+
       const favorite =
         await addFavorite(
           pokemonId,
-          pokemonName,
-          collectionId
+          pokemonName.trim(),
+          collectionId,
+          orgId
         );
 
-      res.status(201).json(
-        favorite
-      );
+      res.status(201).json(favorite);
 
     } catch (error) {
 
@@ -86,6 +102,7 @@ export const addFavoriteController =
     }
   };
 
+
 export const getFavoritesController =
   async (
     req: Request,
@@ -96,6 +113,9 @@ export const getFavoritesController =
 
       const collectionId =
         Number(req.params.collectionId);
+
+      const organizationId =
+        Number(req.query.organizationId);
 
       if (
         !Number.isInteger(collectionId) ||
@@ -109,14 +129,25 @@ export const getFavoritesController =
         return;
       }
 
+      if (
+        !Number.isInteger(organizationId) ||
+        organizationId < 1
+      ) {
+        res.status(400).json({
+          message:
+            "organizationId es obligatorio"
+        });
+
+        return;
+      }
+
       const favorites =
         await getFavoritesByCollection(
-          collectionId
+          collectionId,
+          organizationId
         );
 
-      res.status(200).json(
-        favorites
-      );
+      res.status(200).json(favorites);
 
     } catch (error) {
 
@@ -132,6 +163,7 @@ export const getFavoritesController =
     }
   };
 
+
 export const deleteFavoriteController =
   async (
     req: Request,
@@ -145,6 +177,9 @@ export const deleteFavoriteController =
 
       const pokemonId =
         Number(req.params.pokemonId);
+
+      const organizationId =
+        Number(req.query.organizationId);
 
       if (
         !Number.isInteger(collectionId) ||
@@ -160,16 +195,30 @@ export const deleteFavoriteController =
         return;
       }
 
+      if (
+        !Number.isInteger(organizationId) ||
+        organizationId < 1
+      ) {
+        res.status(400).json({
+          message:
+            "organizationId es obligatorio"
+        });
+
+        return;
+      }
+
       const deleted =
         await deleteFavorite(
           collectionId,
-          pokemonId
+          pokemonId,
+          organizationId
         );
 
       if (!deleted) {
+
         res.status(404).json({
           message:
-            "Favorito no encontrado"
+            "Favorito no encontrado en esta organización"
         });
 
         return;

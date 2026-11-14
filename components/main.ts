@@ -4,6 +4,8 @@ const API_URL =
 const COLLECTIONS_URL =
   "http://localhost:3000/api/collections";
 
+let ORGANIZATION_ID = 1;
+
 const searchInput =
   document.getElementById(
     "search"
@@ -78,6 +80,7 @@ interface PokemonListResponse {
 interface Collection {
   id: number;
   name: string;
+  organization_id: number;
   created_at: string;
 }
 
@@ -214,6 +217,51 @@ function mostrarPokemonBusqueda(
         pokemon.name
       );
     }
+  );
+}
+
+
+function crearSelectorOrganizacion(): void {
+
+  const wrapper = document.createElement("div");
+
+  wrapper.style.marginBottom = "20px";
+
+  wrapper.innerHTML = `
+    <label for="organizationSelect">
+      Organización: 
+    </label>
+
+    <select id="organizationSelect">
+      <option value="1">Organización Alpha</option>
+      <option value="2">Organización Beta</option>
+    </select>
+  `;
+
+  const select =
+    wrapper.querySelector(
+      "#organizationSelect"
+    ) as HTMLSelectElement;
+
+  select.value = String(ORGANIZATION_ID);
+
+  select.addEventListener(
+    "change",
+    () => {
+
+      ORGANIZATION_ID = Number(
+        select.value
+      );
+
+      detailsContainer.innerHTML = "";
+
+      cargarColecciones();
+    }
+  );
+
+  collectionsContainer.parentElement?.insertBefore(
+    wrapper,
+    collectionsContainer
   );
 }
 
@@ -603,7 +651,7 @@ async function mostrarSelectorColeccion(
 
     const response =
       await fetch(
-        COLLECTIONS_URL
+        `${COLLECTIONS_URL}?organizationId=${ORGANIZATION_ID}`
       );
 
     if (!response.ok) {
@@ -721,7 +769,9 @@ async function guardarFavorito(
             pokemonId:
               pokemon.id,
             pokemonName:
-              pokemon.name
+              pokemon.name,
+            organizationId:
+              ORGANIZATION_ID
           })
         }
       );
@@ -765,7 +815,7 @@ async function cargarColecciones(): Promise<void> {
 
     const response =
       await fetch(
-        COLLECTIONS_URL
+        `${COLLECTIONS_URL}?organizationId=${ORGANIZATION_ID}`
       );
 
     if (!response.ok) {
@@ -916,7 +966,7 @@ async function cargarFavoritos(
 
     const response =
       await fetch(
-        `${COLLECTIONS_URL}/${collectionId}/favorites`
+        `${COLLECTIONS_URL}/${collectionId}/favorites?organizationId=${ORGANIZATION_ID}`
       );
 
     if (!response.ok) {
@@ -1021,7 +1071,7 @@ async function eliminarFavorito(
 
     const response =
       await fetch(
-        `${COLLECTIONS_URL}/${collectionId}/favorites/${pokemonId}`,
+        `${COLLECTIONS_URL}/${collectionId}/favorites/${pokemonId}?organizationId=${ORGANIZATION_ID}`,
         {
           method:
             "DELETE"
@@ -1080,7 +1130,8 @@ async function crearColeccion(): Promise<void> {
           },
 
           body: JSON.stringify({
-            name
+            name,
+            organizationId: ORGANIZATION_ID
           })
         }
       );
@@ -1128,7 +1179,7 @@ async function eliminarColeccion(
 
     const response =
       await fetch(
-        `${COLLECTIONS_URL}/${collectionId}`,
+        `${COLLECTIONS_URL}/${collectionId}?organizationId=${ORGANIZATION_ID}`,
         {
           method:
             "DELETE"
@@ -1221,6 +1272,8 @@ collectionNameInput.addEventListener(
 
 
 cargarPokemons();
+
+crearSelectorOrganizacion();
 
 cargarColecciones();
 
