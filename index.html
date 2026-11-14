@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -33,6 +34,8 @@
       text-align: center;
       margin-bottom: 25px;
     }
+
+    /* BUSCADOR */
 
     .search-container {
       display: flex;
@@ -74,6 +77,8 @@
       cursor: not-allowed;
     }
 
+    /* RESULTADOS */
+
     #results {
       display: grid;
       grid-template-columns:
@@ -105,6 +110,8 @@
       margin-top: 10px;
     }
 
+    /* PAGINACIÓN */
+
     #pagination {
       display: flex;
       justify-content: center;
@@ -113,6 +120,8 @@
       margin: 25px 0;
       flex-wrap: wrap;
     }
+
+    /* DETALLES */
 
     #details {
       margin-top: 30px;
@@ -150,7 +159,99 @@
       margin-top: 25px;
     }
 
+    /* FAVORITOS */
+
+    .favorite-button {
+      margin-top: 15px;
+      background: #e63946;
+    }
+
+    #favoriteMessage {
+      margin-top: 15px;
+    }
+
+    #favoriteMessage select {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    /* COLECCIONES */
+
+    .collections-section {
+      margin-top: 30px;
+      padding: 25px;
+      background: white;
+      border-radius: 12px;
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .collections-section h2 {
+      margin-top: 0;
+    }
+
+    .collection-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    #collectionName {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .collection-card {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .collection-card h3 {
+      margin-top: 0;
+      text-transform: capitalize;
+    }
+
+    .collection-card button {
+      margin-right: 8px;
+      margin-bottom: 10px;
+    }
+
+    .delete-collection-button {
+      background: #b00020;
+    }
+
+    .favorite-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      margin-top: 8px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .favorite-item span {
+      text-transform: capitalize;
+    }
+
+    .delete-favorite-button {
+      background: #dc3545;
+    }
+
+    /* RESPONSIVE */
+
     @media (max-width: 600px) {
+
       body {
         padding: 12px;
       }
@@ -182,10 +283,29 @@
       #details {
         padding: 15px;
       }
+
+      .collection-form {
+        flex-direction: column;
+      }
+
+      #collectionName {
+        width: 100%;
+      }
+
+      .favorite-item {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+
+      .favorite-item button {
+        width: 100%;
+      }
     }
 
     @media (min-width: 601px)
       and (max-width: 900px) {
+
       #results {
         grid-template-columns:
           repeat(3, minmax(0, 1fr));
@@ -202,6 +322,8 @@
       Pokémon Explorer
     </h1>
 
+    <!-- BUSCADOR -->
+
     <div class="search-container">
 
       <input
@@ -212,6 +334,7 @@
       >
 
       <select id="typeFilter">
+
         <option value="">
           Todos los tipos
         </option>
@@ -287,6 +410,7 @@
         <option value="fairy">
           Fairy
         </option>
+
       </select>
 
       <button id="searchButton">
@@ -295,19 +419,60 @@
 
     </div>
 
+    <!-- RESULTADOS -->
+
     <div id="results">
+
       <p>
         Cargando Pokémon...
       </p>
+
     </div>
+
+    <!-- PAGINACIÓN -->
 
     <div id="pagination"></div>
 
+    <!-- DETALLES -->
+
     <div id="details"></div>
+
+    <!-- COLECCIONES -->
+
+    <section class="collections-section">
+
+      <h2>
+        Mis colecciones
+      </h2>
+
+      <div class="collection-form">
+
+        <input
+          type="text"
+          id="collectionName"
+          placeholder="Nombre de la colección..."
+        >
+
+        <button id="createCollectionButton">
+          Crear colección
+        </button>
+
+      </div>
+
+      <div id="collections">
+
+        <p>
+          Cargando colecciones...
+        </p>
+
+      </div>
+
+    </section>
 
   </div>
 
   <!-- TypeScript compilado -->
+
   <script
     type="module"
     src="./dist/components/main.js"

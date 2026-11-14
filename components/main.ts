@@ -1,6 +1,8 @@
-
 const API_URL =
   "http://localhost:3000/api/pokemon";
+
+const COLLECTIONS_URL =
+  "http://localhost:3000/api/collections";
 
 const searchInput =
   document.getElementById(
@@ -32,6 +34,21 @@ const searchButton =
     "searchButton"
   ) as HTMLButtonElement;
 
+const collectionNameInput =
+  document.getElementById(
+    "collectionName"
+  ) as HTMLInputElement;
+
+const createCollectionButton =
+  document.getElementById(
+    "createCollectionButton"
+  ) as HTMLButtonElement;
+
+const collectionsContainer =
+  document.getElementById(
+    "collections"
+  ) as HTMLDivElement;
+
 const limit = 10;
 
 interface Pokemon {
@@ -58,6 +75,21 @@ interface PokemonListResponse {
   };
 }
 
+interface Collection {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+interface Favorite {
+  id: number;
+  pokemon_id: number;
+  pokemon_name: string;
+  collection_id: number;
+  created_at: string;
+}
+
+
 async function obtenerPokemon(
   nombre: string
 ): Promise<Pokemon> {
@@ -81,6 +113,7 @@ async function obtenerPokemon(
 
   return response.json();
 }
+
 
 async function buscarPokemon(): Promise<void> {
 
@@ -138,6 +171,7 @@ async function buscarPokemon(): Promise<void> {
   }
 }
 
+
 function mostrarPokemonBusqueda(
   pokemon: Pokemon
 ): void {
@@ -182,6 +216,7 @@ function mostrarPokemonBusqueda(
     }
   );
 }
+
 
 async function cargarPokemons(
   page: number = 1
@@ -236,6 +271,7 @@ async function cargarPokemons(
     );
   }
 }
+
 
 function mostrarLista(
   pokemons:
@@ -307,6 +343,7 @@ function mostrarLista(
   );
 }
 
+
 function obtenerIdDesdeUrl(
   url: string
 ): string {
@@ -318,6 +355,7 @@ function obtenerIdDesdeUrl(
     partes.length - 2
   ];
 }
+
 
 function mostrarPaginacion(
   pagination:
@@ -396,6 +434,7 @@ function mostrarPaginacion(
     siguiente
   );
 }
+
 
 async function mostrarDetalles(
   nombre: string
@@ -477,12 +516,35 @@ async function mostrarDetalles(
           }
         </p>
 
+        <button
+          id="favoriteButton"
+          class="favorite-button"
+        >
+          ⭐ Agregar a favoritos
+        </button>
+
         <button id="closeDetails">
           Cerrar detalles
         </button>
 
+        <div id="favoriteMessage"></div>
+
       </div>
     `;
+
+    const favoriteButton =
+      document.getElementById(
+        "favoriteButton"
+      ) as HTMLButtonElement;
+
+    favoriteButton.addEventListener(
+      "click",
+      () => {
+        mostrarSelectorColeccion(
+          pokemon
+        );
+      }
+    );
 
     const closeButton =
       document.getElementById(
@@ -521,6 +583,577 @@ async function mostrarDetalles(
   }
 }
 
+
+async function mostrarSelectorColeccion(
+  pokemon: Pokemon
+): Promise<void> {
+
+  const message =
+    document.getElementById(
+      "favoriteMessage"
+    ) as HTMLDivElement;
+
+  message.innerHTML = `
+    <p>
+      Cargando colecciones...
+    </p>
+  `;
+
+  try {
+
+    const response =
+      await fetch(
+        COLLECTIONS_URL
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "No se pudieron cargar las colecciones"
+      );
+    }
+
+    const collections:
+      Collection[] =
+      await response.json();
+
+    if (collections.length === 0) {
+
+      message.innerHTML = `
+        <p>
+          No tienes colecciones.
+          Crea una en la sección "Mis colecciones".
+        </p>
+      `;
+
+      return;
+    }
+
+    message.innerHTML = `
+      <div style="margin-top: 15px;">
+
+        <label>
+          Selecciona una colección:
+        </label>
+
+        <select id="collectionSelect">
+          ${collections
+            .map(
+              collection => `
+                <option value="${collection.id}">
+                  ${collection.name}
+                </option>
+              `
+            )
+            .join("")
+          }
+        </select>
+
+        <button id="saveFavoriteButton">
+          Guardar
+        </button>
+
+      </div>
+    `;
+
+    const saveButton =
+      document.getElementById(
+        "saveFavoriteButton"
+      ) as HTMLButtonElement;
+
+    saveButton.addEventListener(
+      "click",
+      async () => {
+
+        const select =
+          document.getElementById(
+            "collectionSelect"
+          ) as HTMLSelectElement;
+
+        const collectionId =
+          Number(select.value);
+
+        await guardarFavorito(
+          pokemon,
+          collectionId
+        );
+      }
+    );
+
+  } catch (error) {
+
+    message.innerHTML = `
+      <p>
+        ${
+          error instanceof Error
+            ? error.message
+            : "Error cargando colecciones."
+        }
+      </p>
+    `;
+  }
+}
+
+
+async function guardarFavorito(
+  pokemon: Pokemon,
+  collectionId: number
+): Promise<void> {
+
+  const message =
+    document.getElementById(
+      "favoriteMessage"
+    ) as HTMLDivElement;
+
+  try {
+
+    const response =
+      await fetch(
+        `${COLLECTIONS_URL}/${collectionId}/favorites`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            pokemonId:
+              pokemon.id,
+            pokemonName:
+              pokemon.name
+          })
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+        "No se pudo guardar el favorito"
+      );
+    }
+
+    message.innerHTML = `
+      <p>
+        ⭐ Pokémon guardado correctamente.
+      </p>
+    `;
+
+    cargarColecciones();
+
+  } catch (error) {
+
+    message.innerHTML = `
+      <p>
+        ${
+          error instanceof Error
+            ? error.message
+            : "Error al guardar el favorito."
+        }
+      </p>
+    `;
+  }
+}
+
+
+async function cargarColecciones(): Promise<void> {
+
+  try {
+
+    const response =
+      await fetch(
+        COLLECTIONS_URL
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "Error obteniendo colecciones"
+      );
+    }
+
+    const collections:
+      Collection[] =
+      await response.json();
+
+    collectionsContainer.innerHTML =
+      "";
+
+    if (collections.length === 0) {
+
+      collectionsContainer.innerHTML = `
+        <p>
+          No tienes colecciones todavía.
+        </p>
+      `;
+
+      return;
+    }
+
+    for (
+      const collection
+      of collections
+    ) {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+      div.className =
+        "collection-card";
+
+      div.innerHTML = `
+        <h3>
+          ${collection.name}
+        </h3>
+
+        <button
+          class="view-favorites-button"
+          data-id="${collection.id}"
+        >
+          Ver favoritos
+        </button>
+
+        <button
+          class="delete-collection-button"
+          data-id="${collection.id}"
+        >
+          Eliminar colección
+        </button>
+
+        <div
+          id="favorites-${collection.id}"
+        ></div>
+      `;
+
+      collectionsContainer.appendChild(
+        div
+      );
+    }
+
+    const viewButtons =
+      document.querySelectorAll(
+        ".view-favorites-button"
+      );
+
+    viewButtons.forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const id =
+              Number(
+                (button as HTMLElement)
+                  .dataset.id
+              );
+
+            cargarFavoritos(
+              id
+            );
+          }
+        );
+      }
+    );
+
+    const deleteButtons =
+      document.querySelectorAll(
+        ".delete-collection-button"
+      );
+
+    deleteButtons.forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            const id =
+              Number(
+                (button as HTMLElement)
+                  .dataset.id
+              );
+
+            await eliminarColeccion(
+              id
+            );
+          }
+        );
+      }
+    );
+
+  } catch (error) {
+
+    collectionsContainer.innerHTML = `
+      <p>
+        No se pudieron cargar las colecciones.
+      </p>
+    `;
+  }
+}
+
+
+async function cargarFavoritos(
+  collectionId: number
+): Promise<void> {
+
+  const container =
+    document.getElementById(
+      `favorites-${collectionId}`
+    ) as HTMLDivElement;
+
+  container.innerHTML = `
+    <p>
+      Cargando favoritos...
+    </p>
+  `;
+
+  try {
+
+    const response =
+      await fetch(
+        `${COLLECTIONS_URL}/${collectionId}/favorites`
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "No se pudieron obtener los favoritos"
+      );
+    }
+
+    const favorites:
+      Favorite[] =
+      await response.json();
+
+    if (favorites.length === 0) {
+
+      container.innerHTML = `
+        <p>
+          Esta colección no tiene favoritos.
+        </p>
+      `;
+
+      return;
+    }
+
+    container.innerHTML =
+      favorites
+        .map(
+          favorite => `
+            <div class="favorite-item">
+
+              <span>
+                ⭐ ${favorite.pokemon_name}
+              </span>
+
+              <button
+                data-collection="${collectionId}"
+                data-pokemon="${favorite.pokemon_id}"
+                class="delete-favorite-button"
+              >
+                Eliminar
+              </button>
+
+            </div>
+          `
+        )
+        .join("");
+
+    const buttons =
+      container.querySelectorAll(
+        ".delete-favorite-button"
+      );
+
+    buttons.forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            const element =
+              button as HTMLElement;
+
+            const collection =
+              Number(
+                element.dataset.collection
+              );
+
+            const pokemon =
+              Number(
+                element.dataset.pokemon
+              );
+
+            await eliminarFavorito(
+              collection,
+              pokemon
+            );
+
+            cargarFavoritos(
+              collection
+            );
+          }
+        );
+      }
+    );
+
+  } catch (error) {
+
+    container.innerHTML = `
+      <p>
+        Error cargando favoritos.
+      </p>
+    `;
+  }
+}
+
+
+async function eliminarFavorito(
+  collectionId: number,
+  pokemonId: number
+): Promise<void> {
+
+  try {
+
+    const response =
+      await fetch(
+        `${COLLECTIONS_URL}/${collectionId}/favorites/${pokemonId}`,
+        {
+          method:
+            "DELETE"
+        }
+      );
+
+    if (!response.ok) {
+
+      const result =
+        await response.json();
+
+      throw new Error(
+        result.message ||
+        "No se pudo eliminar"
+      );
+    }
+
+  } catch (error) {
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Error eliminando favorito"
+    );
+  }
+}
+
+
+async function crearColeccion(): Promise<void> {
+
+  const name =
+    collectionNameInput.value
+      .trim();
+
+  if (!name) {
+
+    alert(
+      "Escribe un nombre para la colección."
+    );
+
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        COLLECTIONS_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            name
+          })
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+        "No se pudo crear la colección"
+      );
+    }
+
+    collectionNameInput.value =
+      "";
+
+    cargarColecciones();
+
+  } catch (error) {
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Error creando colección."
+    );
+  }
+}
+
+
+async function eliminarColeccion(
+  collectionId: number
+): Promise<void> {
+
+  const confirmar =
+    confirm(
+      "¿Quieres eliminar esta colección?"
+    );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        `${COLLECTIONS_URL}/${collectionId}`,
+        {
+          method:
+            "DELETE"
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "No se pudo eliminar la colección"
+      );
+    }
+
+    cargarColecciones();
+
+  } catch (error) {
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Error eliminando colección."
+    );
+  }
+}
+
+
 function mostrarError(
   mensaje: string
 ): void {
@@ -532,10 +1165,12 @@ function mostrarError(
   `;
 }
 
+
 searchButton.addEventListener(
   "click",
   buscarPokemon
 );
+
 
 searchInput.addEventListener(
   "keydown",
@@ -551,6 +1186,7 @@ searchInput.addEventListener(
   }
 );
 
+
 typeFilter.addEventListener(
   "change",
   () => {
@@ -562,7 +1198,31 @@ typeFilter.addEventListener(
   }
 );
 
+
+createCollectionButton.addEventListener(
+  "click",
+  crearColeccion
+);
+
+
+collectionNameInput.addEventListener(
+  "keydown",
+  (
+    event: KeyboardEvent
+  ) => {
+
+    if (
+      event.key === "Enter"
+    ) {
+      crearColeccion();
+    }
+  }
+);
+
+
 cargarPokemons();
+
+cargarColecciones();
 
 (
   window as any
