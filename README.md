@@ -1,31 +1,270 @@
 # Pokémon API
 
-API REST desarrollada con **Node.js, TypeScript, Express y PostgreSQL**, integrada con la **PokéAPI** para consultar información de Pokémon.
+API REST desarrollada en **TypeScript + Node.js + Express**, integrada con **PokéAPI** y **PostgreSQL**.
 
-El proyecto incluye un frontend web para consultar Pokémon, buscar por nombre o ID, filtrar por tipo, visualizar información detallada y administrar colecciones y Pokémon favoritos.
+El proyecto incluye un frontend web para consultar Pokémon, buscar por nombre, filtrar por tipo, visualizar estadísticas, habilidades y evoluciones, además de gestionar colecciones y Pokémon favoritos.
 
-## Tecnologías
+---
 
-- Node.js
+## Tecnologías utilizadas
+
 - TypeScript
-- Express.js
+- Node.js
+- Express
 - PostgreSQL
 - PokéAPI
+- Vitest
+- Supertest
+- JSDOM
 - HTML
 - CSS
-- JavaScript / TypeScript
+- JavaScript/TypeScript
 - Git y GitHub
 
-## Estructura del proyecto
+---
+
+## Funcionalidades
+
+### Pokémon
+
+- Listado de Pokémon.
+- Paginación.
+- Búsqueda por nombre.
+- Filtro por tipo.
+- Consulta de detalles.
+- Estadísticas base.
+- Habilidades.
+- Imagen.
+- Cadena de evolución.
+
+### Colecciones
+
+- Crear colecciones.
+- Consultar colecciones.
+- Actualizar colecciones.
+- Eliminar colecciones.
+- Asociar Pokémon favoritos a colecciones.
+
+### Favoritos
+
+- Agregar Pokémon a una colección.
+- Consultar favoritos.
+- Eliminar favoritos.
+
+### Seguridad multiempresa
+
+El sistema implementa separación de información mediante organizaciones.
+
+Se crearon organizaciones ficticias para realizar las pruebas:
+
+- Organización Alpha
+- Organización Beta
+- ACME
+- POKEMON COLOMBIA
+
+Cada colección pertenece a una organización mediante `organization_id`.
+
+Las consultas y operaciones sobre colecciones y favoritos validan la organización correspondiente, evitando que una organización pueda consultar o modificar información perteneciente a otra.
+
+> Para el ejercicio académico, `organizationId` se utiliza como identificador de organización enviado por la aplicación. En un sistema productivo debería obtenerse desde un usuario autenticado mediante sesión o JWT.
+
+---
+
+# Pruebas automatizadas
+
+El proyecto implementa tres tipos de pruebas:
+
+## 1. Pruebas unitarias
+
+Herramienta:
+
+**Vitest**
+
+Se prueba el servicio de Pokémon de forma aislada.
+
+Actualmente se comprueba:
+
+- Transformación correcta de la respuesta de PokéAPI.
+- Manejo del error cuando un Pokémon no existe.
+- Transformación de tipos.
+- Transformación de habilidades.
+- Transformación de estadísticas.
+- Transformación de evoluciones.
+
+Las respuestas de PokéAPI se simulan mediante `fetch`, por lo que las pruebas no dependen del servicio real.
+
+Archivo:
+
+```text
+tests/unit/pokemon.service.test.ts
+```
+
+---
+
+## 2. Pruebas de integración
+
+Herramientas:
+
+- Vitest
+- Supertest
+
+Se prueba la API de Express utilizando sus rutas reales.
+
+Actualmente se comprueba:
+
+```text
+GET /api/pokemon
+```
+
+La respuesta de PokéAPI también se simula para evitar depender de Internet.
+
+Archivo:
+
+```text
+tests/integration/pokemon.routes.test.ts
+```
+
+---
+
+## 3. Pruebas de interfaz
+
+Herramientas:
+
+- Vitest
+- JSDOM
+
+Se carga el `index.html` dentro de un DOM simulado y se comprueba que existan los principales elementos de la interfaz:
+
+- Buscador.
+- Filtro por tipo.
+- Botón de búsqueda.
+- Lista de resultados.
+- Paginación.
+- Panel de detalles.
+- Sección de colecciones.
+
+Archivo:
+
+```text
+tests/interface/main.test.ts
+```
+
+---
+
+## Ejecutar las pruebas
+
+Para ejecutar todas las pruebas:
+
+```bash
+npm test
+```
+
+Para ejecutar Vitest en modo watch:
+
+```bash
+npm run test:watch
+```
+
+El proyecto debe mostrar todas las pruebas exitosas antes de realizar una entrega.
+
+---
+
+# Instalación
+
+Clonar el repositorio:
+
+```bash
+git clone https://github.com/acmargo413/PokeAPI-AB-group.git
+```
+
+Entrar al proyecto:
+
+```bash
+cd pokemon-api
+```
+
+Instalar dependencias:
+
+```bash
+npm install
+```
+
+---
+
+# Base de datos
+
+El proyecto utiliza PostgreSQL.
+
+Base de datos:
+
+```text
+pokemon_api
+```
+
+Configuración utilizada por el backend:
+
+```text
+Host: localhost
+Puerto: 5432
+Usuario: postgres
+Base de datos: pokemon_api
+```
+
+La configuración se encuentra en:
+
+```text
+src/config/database.ts
+```
+
+---
+
+# Ejecución en desarrollo
+
+Para iniciar el proyecto:
+
+```bash
+npm run dev
+```
+
+El servidor queda disponible en:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# Compilar el proyecto
+
+```bash
+npm run build
+```
+
+Los archivos compilados se generan dentro de:
+
+```text
+dist/
+```
+
+Para iniciar la versión compilada:
+
+```bash
+npm start
+```
+
+---
+
+# Estructura del proyecto
 
 ```text
 pokemon-api/
+│
 ├── components/
-│   ├── main.ts
 │   ├── pokemonAbilities.ts
 │   ├── pokemonEvolution.ts
 │   ├── pokemonHeader.ts
-│   └── pokemonStats.ts
+│   ├── pokemonStats.ts
+│   └── main.ts
 │
 ├── src/
 │   ├── config/
@@ -47,361 +286,94 @@ pokemon-api/
 │   │   ├── collection.service.ts
 │   │   └── favorite.service.ts
 │   │
-│   └── app.ts
+│   ├── app.ts
+│   └── server.ts
+│
+├── tests/
+│   ├── unit/
+│   │   └── pokemon.service.test.ts
+│   │
+│   ├── integration/
+│   │   └── pokemon.routes.test.ts
+│   │
+│   └── interface/
+│       └── main.test.ts
 │
 ├── index.html
 ├── package.json
 ├── tsconfig.json
+├── vitest.config.ts
 └── README.md
 ```
 
-## Funcionalidades
+---
 
-### Pokémon
+# API
 
-- Listado de Pokémon.
-- Búsqueda por nombre o ID.
-- Filtro por tipo.
-- Paginación.
-- Visualización de información detallada.
-- Estadísticas base.
-- Habilidades.
-- Evoluciones.
-- Integración con PokéAPI.
-
-### Colecciones
-
-Los usuarios pueden:
-
-- Crear colecciones.
-- Consultar sus colecciones.
-- Actualizar colecciones.
-- Eliminar colecciones.
-- Asociar Pokémon favoritos a una colección.
-
-### Favoritos
-
-- Agregar Pokémon a una colección.
-- Consultar los Pokémon favoritos de una colección.
-- Eliminar Pokémon favoritos.
-- Validación de la colección antes de guardar un favorito.
-
-## Seguridad multiempresa
-
-El sistema implementa aislamiento de información entre organizaciones.
-
-Se crearon organizaciones ficticias para realizar las pruebas:
-
-- Organización Alpha
-- Organización Beta
-
-Cada organización puede tener sus propias colecciones y favoritos.
-
-El sistema utiliza `organizationId` para asociar la información con una organización y evitar que una organización consulte o modifique los datos pertenecientes a otra.
-
-Por ejemplo:
+## Obtener Pokémon
 
 ```text
-Organización Alpha
-└── Colección Alpha
-    ├── Pikachu
-    └── Charizard
-
-Organización Beta
-└── Colección Beta
-    ├── Bulbasaur
-    └── Squirtle
-```
-
-Las consultas y operaciones de colecciones y favoritos validan la organización correspondiente.
-
-> Nota: este proyecto implementa la separación multiempresa como parte del ejercicio técnico. En un sistema de producción, el `organizationId` debería obtenerse desde una sesión autenticada o token JWT, en lugar de confiar directamente en un valor enviado por el cliente.
-
-## Base de datos
-
-El proyecto utiliza **PostgreSQL**.
-
-Base de datos:
-
-```text
-pokemon_api
-```
-
-Las principales entidades utilizadas son:
-
-- `organizations`
-- `users`
-- `collections`
-- `favorites`
-
-La relación entre organizaciones y colecciones permite mantener los datos separados:
-
-```text
-organizations
-      │
-      └── collections
-              │
-              └── favorites
-```
-
-## Configuración
-
-En:
-
-```text
-src/config/database.ts
-```
-
-se configura la conexión a PostgreSQL.
-
-Ejemplo:
-
-```ts
-const pool = new Pool({
-  host: "localhost",
-  port: 5432,
-  database: "pokemon_api",
-  user: "postgres",
-  password: "TU_PASSWORD",
-});
-```
-
-Se recomienda utilizar variables de entorno para las credenciales en un entorno real.
-
-## Instalación
-
-Clonar el repositorio:
-
-```bash
-git clone https://github.com/acmargo413/PokeAPI-AB-group.git
-```
-
-Entrar al proyecto:
-
-```bash
-cd PokeAPI-AB-group
-```
-
-Instalar dependencias:
-
-```bash
-npm install
-```
-
-## Configurar PostgreSQL
-
-Crear una base de datos llamada:
-
-```text
-pokemon_api
-```
-
-Configurar las credenciales de PostgreSQL en:
-
-```text
-src/config/database.ts
-```
-
-## Ejecutar en desarrollo
-
-Para ejecutar el proyecto directamente con TypeScript:
-
-```bash
-npm run dev
-```
-
-El servidor estará disponible en:
-
-```text
-http://localhost:3000
-```
-
-## Compilar el proyecto
-
-```bash
-npm run build
-```
-
-Los archivos compilados se generan dentro de:
-
-```text
-dist/
-```
-
-## Ejecutar la versión compilada
-
-```bash
-npm start
-```
-
-El servidor se ejecutará en:
-
-```text
-http://localhost:3000
-```
-
-## Endpoints principales
-
-### Pokémon
-
-```http
-GET /api/pokemon
-```
-
-Obtiene la lista de Pokémon.
-
-```http
 GET /api/pokemon/:id
 ```
 
-Obtiene un Pokémon por ID.
+Ejemplo:
 
-```http
+```text
+GET /api/pokemon/25
+```
+
+## Listar Pokémon
+
+```text
+GET /api/pokemon
+```
+
+## Buscar Pokémon
+
+```text
 GET /api/pokemon/search?name=pikachu
 ```
 
-Busca un Pokémon por nombre.
+## Filtrar por tipo
 
-### Colecciones
-
-```http
-POST /api/collections
+```text
+GET /api/pokemon?page=1&limit=20&type=electric
 ```
 
-Crear una colección.
+## Colecciones
 
-```http
-GET /api/collections?organizationId=1
-```
-
-Obtener las colecciones de una organización.
-
-```http
-PUT /api/collections/:id
-```
-
-Actualizar una colección.
-
-```http
+```text
+POST   /api/collections
+GET    /api/collections?organizationId=1
+PUT    /api/collections/:id
 DELETE /api/collections/:id?organizationId=1
 ```
 
-Eliminar una colección.
+## Favoritos
 
-### Favoritos
-
-```http
-POST /api/collections/:collectionId/favorites
-```
-
-Agregar un Pokémon favorito.
-
-```http
-GET /api/collections/:collectionId/favorites?organizationId=1
-```
-
-Obtener los favoritos de una colección.
-
-```http
+```text
+POST   /api/collections/:collectionId/favorites
+GET    /api/collections/:collectionId/favorites?organizationId=1
 DELETE /api/collections/:collectionId/favorites/:pokemonId?organizationId=1
 ```
 
-Eliminar un Pokémon favorito.
+---
 
-## Arquitectura
+# Mock de PokéAPI
 
-El backend utiliza una arquitectura separada por responsabilidades:
+Las pruebas automatizadas utilizan mocks para simular las respuestas de PokéAPI.
 
-```text
-Request
-   │
-   ▼
-Routes
-   │
-   ▼
-Controllers
-   │
-   ▼
-Services
-   │
-   ▼
-PostgreSQL
-```
+Esto permite ejecutar las pruebas sin depender de:
 
-### Routes
+- Disponibilidad de PokéAPI.
+- Conexión a Internet.
+- Cambios en las respuestas del servicio externo.
+- Tiempo de respuesta del servicio externo.
 
-Definen los endpoints disponibles de la API.
+De esta forma, las pruebas pueden ejecutarse de manera controlada y reproducible.
 
-### Controllers
+---
 
-Reciben las solicitudes HTTP, validan los datos y generan las respuestas.
+# Autor
 
-### Services
-
-Contienen la lógica relacionada con el acceso y manipulación de los datos.
-
-### Config
-
-Contiene la configuración de conexión con PostgreSQL.
-
-## Flujo de favoritos
-
-```text
-Frontend
-   │
-   │ POST /api/collections/:id/favorites
-   ▼
-Favorite Controller
-   │
-   ▼
-Favorite Service
-   │
-   ▼
-PostgreSQL
-   │
-   ▼
-Favorite
-```
-
-Antes de guardar el favorito, el backend verifica que la colección pertenezca a la organización indicada.
-
-## Pruebas realizadas
-
-Se verificó:
-
-- Conexión con PostgreSQL.
-- Consulta de Pokémon.
-- Búsqueda de Pokémon.
-- Filtrado.
-- Paginación.
-- Creación de colecciones.
-- Actualización de colecciones.
-- Eliminación de colecciones.
-- Creación de favoritos.
-- Consulta de favoritos.
-- Eliminación de favoritos.
-- Separación de datos entre organizaciones.
-- Compilación TypeScript.
-- Ejecución del servidor.
-- Funcionamiento del frontend.
-
-## Ejecución rápida
-
-Después de instalar las dependencias y configurar PostgreSQL:
-
-```bash
-npm run build
-npm start
-```
-
-Abrir:
-
-```text
-http://localhost:3000
-```
-
-## Autor
-
-**Andres Camargo**
-
-Proyecto desarrollado como ejercicio técnico utilizando Node.js, TypeScript, Express, PostgreSQL y PokéAPI.
+Proyecto desarrollado como ejercicio técnico utilizando TypeScript, Node.js, Express, PostgreSQL y PokéAPI.
