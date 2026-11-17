@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -248,6 +247,240 @@
       background: #dc3545;
     }
 
+    /* ==============================
+       AI TOOLS
+    ============================== */
+
+    .ai-tools {
+      margin-top: 30px;
+      padding: 25px;
+      background: white;
+      border-radius: 12px;
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .ai-tools h2 {
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+
+    .tool-card {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .tool-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .tool-card h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    .tool-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .tool-form input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .tool-form button {
+      white-space: nowrap;
+    }
+
+    /* CONTROLES VISUAL / JSON */
+
+    .tool-view-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .tool-view-button {
+      background: #e5e5e5;
+      color: #222;
+      border: 1px solid #ccc;
+      padding: 8px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .tool-view-button.active {
+      background: #222;
+      color: white;
+      border-color: #222;
+    }
+
+    /* RESULTADO VISUAL */
+
+    .tool-visual-result {
+      margin-top: 15px;
+    }
+
+    /* RESULTADO JSON */
+
+    .tool-json-result {
+      display: none;
+      margin-top: 15px;
+      padding: 15px;
+      background: #222;
+      color: #f1f1f1;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Cuando JS lo muestra */
+
+    .tool-json-result:not([hidden]) {
+      display: block;
+    }
+
+    /* MENSAJE DE EXITO */
+
+    .ai-success {
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #f1f1f1;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    /* TARJETA POKEMON */
+
+    .ai-pokemon-card {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+      padding: 20px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+
+    .ai-pokemon-card img {
+      width: 130px;
+      height: 130px;
+      object-fit: contain;
+    }
+
+    .ai-pokemon-info h3,
+    .ai-comparison-card h3 {
+      text-transform: capitalize;
+      margin-top: 0;
+    }
+
+    /* TIPOS */
+
+    .ai-type,
+    .ai-ability {
+      display: inline-block;
+      margin: 3px;
+      padding: 4px 9px;
+      background: #eee;
+      border-radius: 20px;
+      font-size: 12px;
+      text-transform: capitalize;
+    }
+
+    /* HABILIDADES */
+
+    .ai-abilities {
+      margin-bottom: 10px;
+    }
+
+    /* ESTADISTICAS */
+
+    .ai-stats {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .ai-stat {
+      padding: 10px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .ai-stat strong,
+    .ai-stat span {
+      display: block;
+    }
+
+    .ai-stat span {
+      margin-top: 4px;
+      font-size: 11px;
+      text-transform: capitalize;
+    }
+
+    /* EVOLUCION */
+
+    .ai-evolution {
+      margin-top: 15px;
+      padding: 12px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    /* ERROR */
+
+    .ai-error {
+      padding: 15px;
+      background: #fff0f0;
+      border: 1px solid #e0b0b0;
+      border-radius: 8px;
+    }
+
+    .ai-error strong {
+      color: #b00020;
+    }
+
+    /* COMPARACION */
+
+    .ai-comparison {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .ai-comparison-card {
+      padding: 20px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+
+    .ai-comparison-card > img {
+      display: block;
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin: 0 auto;
+    }
+
     /* RESPONSIVE */
 
     @media (max-width: 600px) {
@@ -300,6 +533,46 @@
 
       .favorite-item button {
         width: 100%;
+      }
+
+      .ai-tools {
+        padding: 15px;
+      }
+
+      .tool-card {
+        padding: 15px;
+      }
+
+      .tool-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .tool-form input,
+      .tool-form button {
+        width: 100%;
+      }
+
+      .ai-pokemon-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .ai-stats {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+
+      .ai-comparison {
+        grid-template-columns: 1fr;
+      }
+
+      .tool-view-controls {
+        width: 100%;
+      }
+
+      .tool-view-button {
+        flex: 1;
       }
     }
 
@@ -419,6 +692,7 @@
 
     </div>
 
+
     <!-- RESULTADOS -->
 
     <div id="results">
@@ -429,13 +703,16 @@
 
     </div>
 
+
     <!-- PAGINACIÓN -->
 
     <div id="pagination"></div>
 
+
     <!-- DETALLES -->
 
     <div id="details"></div>
+
 
     <!-- COLECCIONES -->
 
@@ -469,7 +746,210 @@
 
     </section>
 
+
+    <!-- ==============================
+         AI TOOLS
+    ============================== -->
+
+    <section class="ai-tools">
+
+      <h2>
+        🤖 AI Tools
+      </h2>
+
+
+      <!-- SEARCH POKEMON -->
+
+      <div class="tool-card">
+
+        <h3>
+          🔍 Search Pokémon
+        </h3>
+
+        <div class="tool-form">
+
+          <input
+            type="text"
+            id="toolSearchName"
+            placeholder="Ej: Pikachu"
+          >
+
+          <button id="toolSearchButton">
+            Ejecutar
+          </button>
+
+        </div>
+
+
+        <div class="tool-view-controls">
+
+          <button
+            type="button"
+            class="tool-view-button active"
+            data-tool="search"
+            data-view="visual"
+          >
+            🖥️ Visual
+          </button>
+
+          <button
+            type="button"
+            class="tool-view-button"
+            data-tool="search"
+            data-view="json"
+          >
+            { } JSON
+          </button>
+
+        </div>
+
+
+        <div
+          id="toolSearchVisual"
+          class="tool-visual-result"
+        ></div>
+
+
+        <pre
+          id="toolSearchResult"
+          class="tool-json-result"
+          hidden
+        ></pre>
+
+      </div>
+
+
+      <!-- POKEMON DETAILS -->
+
+      <div class="tool-card">
+
+        <h3>
+          📋 Pokémon Details
+        </h3>
+
+        <div class="tool-form">
+
+          <input
+            type="text"
+            id="toolDetailsId"
+            placeholder="Ej: 25"
+          >
+
+          <button id="toolDetailsButton">
+            Ejecutar
+          </button>
+
+        </div>
+
+
+        <div class="tool-view-controls">
+
+          <button
+            type="button"
+            class="tool-view-button active"
+            data-tool="details"
+            data-view="visual"
+          >
+            🖥️ Visual
+          </button>
+
+          <button
+            type="button"
+            class="tool-view-button"
+            data-tool="details"
+            data-view="json"
+          >
+            { } JSON
+          </button>
+
+        </div>
+
+
+        <div
+          id="toolDetailsVisual"
+          class="tool-visual-result"
+        ></div>
+
+
+        <pre
+          id="toolDetailsResult"
+          class="tool-json-result"
+          hidden
+        ></pre>
+
+      </div>
+
+
+      <!-- COMPARE POKEMON -->
+
+      <div class="tool-card">
+
+        <h3>
+          ⚔️ Compare Pokémon
+        </h3>
+
+        <div class="tool-form">
+
+          <input
+            type="text"
+            id="toolPokemon1"
+            placeholder="Ej: Pikachu"
+          >
+
+          <input
+            type="text"
+            id="toolPokemon2"
+            placeholder="Ej: Charizard"
+          >
+
+          <button id="toolCompareButton">
+            Comparar
+          </button>
+
+        </div>
+
+
+        <div class="tool-view-controls">
+
+          <button
+            type="button"
+            class="tool-view-button active"
+            data-tool="compare"
+            data-view="visual"
+          >
+            🖥️ Visual
+          </button>
+
+          <button
+            type="button"
+            class="tool-view-button"
+            data-tool="compare"
+            data-view="json"
+          >
+            { } JSON
+          </button>
+
+        </div>
+
+
+        <div
+          id="toolCompareVisual"
+          class="tool-visual-result"
+        ></div>
+
+
+        <pre
+          id="toolCompareResult"
+          class="tool-json-result"
+          hidden
+        ></pre>
+
+      </div>
+
+    </section>
+
   </div>
+
 
   <!-- TypeScript compilado -->
 

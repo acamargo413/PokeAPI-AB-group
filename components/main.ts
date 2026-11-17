@@ -4,7 +4,11 @@ const API_URL =
 const COLLECTIONS_URL =
   "http://localhost:3000/api/collections";
 
+const TOOLS_URL =
+  "http://localhost:3000/api/tools";
+
 let ORGANIZATION_ID = 1;
+
 
 const searchInput =
   document.getElementById(
@@ -53,6 +57,7 @@ const collectionsContainer =
 
 const limit = 10;
 
+
 interface Pokemon {
   id?: number;
   name: string;
@@ -63,7 +68,9 @@ interface Pokemon {
   evolution?: string[];
 }
 
+
 interface PokemonListResponse {
+
   data: {
     name: string;
     url: string;
@@ -77,12 +84,14 @@ interface PokemonListResponse {
   };
 }
 
+
 interface Collection {
   id: number;
   name: string;
   organization_id: number;
   created_at: string;
 }
+
 
 interface Favorite {
   id: number;
@@ -92,6 +101,10 @@ interface Favorite {
   created_at: string;
 }
 
+
+/* ==================================================
+   OBTENER POKEMON
+================================================== */
 
 async function obtenerPokemon(
   nombre: string
@@ -103,12 +116,14 @@ async function obtenerPokemon(
     );
 
   if (response.status === 404) {
+
     throw new Error(
       "Pokémon no encontrado"
     );
   }
 
   if (!response.ok) {
+
     throw new Error(
       "Error del servidor"
     );
@@ -118,6 +133,10 @@ async function obtenerPokemon(
 }
 
 
+/* ==================================================
+   BUSCAR POKEMON
+================================================== */
+
 async function buscarPokemon(): Promise<void> {
 
   const nombre =
@@ -126,7 +145,9 @@ async function buscarPokemon(): Promise<void> {
       .toLowerCase();
 
   if (!nombre) {
+
     cargarPokemons(1);
+
     return;
   }
 
@@ -136,7 +157,8 @@ async function buscarPokemon(): Promise<void> {
     </p>
   `;
 
-  paginationContainer.innerHTML = "";
+  paginationContainer.innerHTML =
+    "";
 
   try {
 
@@ -146,12 +168,14 @@ async function buscarPokemon(): Promise<void> {
       );
 
     if (response.status === 404) {
+
       throw new Error(
         "Pokémon no encontrado"
       );
     }
 
     if (!response.ok) {
+
       throw new Error(
         "Error del servidor"
       );
@@ -175,11 +199,16 @@ async function buscarPokemon(): Promise<void> {
 }
 
 
+/* ==================================================
+   MOSTRAR RESULTADO BUSQUEDA
+================================================== */
+
 function mostrarPokemonBusqueda(
   pokemon: Pokemon
 ): void {
 
   resultsContainer.innerHTML = `
+
     <div class="pokemon-card">
 
       <img
@@ -203,6 +232,7 @@ function mostrarPokemonBusqueda(
       </button>
 
     </div>
+
   `;
 
   const button =
@@ -213,29 +243,50 @@ function mostrarPokemonBusqueda(
   button.addEventListener(
     "click",
     () => {
+
       mostrarDetalles(
         pokemon.name
       );
+
     }
   );
 }
 
 
+/* ==================================================
+   ORGANIZACION
+================================================== */
+
 function crearSelectorOrganizacion(): void {
 
-  const wrapper = document.createElement("div");
+  const wrapper =
+    document.createElement(
+      "div"
+    );
 
-  wrapper.style.marginBottom = "20px";
+  wrapper.style.marginBottom =
+    "20px";
 
   wrapper.innerHTML = `
-    <label for="organizationSelect">
-      Organización: 
+
+    <label
+      for="organizationSelect"
+    >
+      Organización:
     </label>
 
     <select id="organizationSelect">
-      <option value="1">Organización Alpha</option>
-      <option value="2">Organización Beta</option>
+
+      <option value="1">
+        Organización Alpha
+      </option>
+
+      <option value="2">
+        Organización Beta
+      </option>
+
     </select>
+
   `;
 
   const select =
@@ -243,37 +294,51 @@ function crearSelectorOrganizacion(): void {
       "#organizationSelect"
     ) as HTMLSelectElement;
 
-  select.value = String(ORGANIZATION_ID);
+  select.value =
+    String(
+      ORGANIZATION_ID
+    );
 
   select.addEventListener(
     "change",
     () => {
 
-      ORGANIZATION_ID = Number(
-        select.value
-      );
+      ORGANIZATION_ID =
+        Number(
+          select.value
+        );
 
-      detailsContainer.innerHTML = "";
+      detailsContainer.innerHTML =
+        "";
 
       cargarColecciones();
+
     }
   );
 
-  collectionsContainer.parentElement?.insertBefore(
-    wrapper,
-    collectionsContainer
-  );
+  collectionsContainer
+    .parentElement
+    ?.insertBefore(
+      wrapper,
+      collectionsContainer
+    );
 }
 
+
+/* ==================================================
+   CARGAR POKEMON
+================================================== */
 
 async function cargarPokemons(
   page: number = 1
 ): Promise<void> {
 
   resultsContainer.innerHTML = `
+
     <p>
       Cargando Pokémon...
     </p>
+
   `;
 
   try {
@@ -285,14 +350,17 @@ async function cargarPokemons(
       `${API_URL}?page=${page}&limit=${limit}`;
 
     if (tipo) {
+
       url +=
         `&type=${encodeURIComponent(tipo)}`;
+
     }
 
     const response =
       await fetch(url);
 
     if (!response.ok) {
+
       throw new Error(
         "No se pudieron obtener los Pokémon"
       );
@@ -321,19 +389,28 @@ async function cargarPokemons(
 }
 
 
+/* ==================================================
+   MOSTRAR LISTA
+================================================== */
+
 function mostrarLista(
   pokemons:
     PokemonListResponse["data"]
 ): void {
 
-  resultsContainer.innerHTML = "";
+  resultsContainer.innerHTML =
+    "";
 
-  if (pokemons.length === 0) {
+  if (
+    pokemons.length === 0
+  ) {
 
     resultsContainer.innerHTML = `
+
       <p>
         No se encontraron Pokémon.
       </p>
+
     `;
 
     return;
@@ -356,6 +433,7 @@ function mostrarLista(
         "pokemon-card";
 
       card.innerHTML = `
+
         <img
           src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png"
           alt="${pokemon.name}"
@@ -368,6 +446,7 @@ function mostrarLista(
         <button>
           Ver detalles
         </button>
+
       `;
 
       const button =
@@ -378,19 +457,26 @@ function mostrarLista(
       button.addEventListener(
         "click",
         () => {
+
           mostrarDetalles(
             pokemon.name
           );
+
         }
       );
 
       resultsContainer.appendChild(
         card
       );
+
     }
   );
 }
 
+
+/* ==================================================
+   OBTENER ID
+================================================== */
 
 function obtenerIdDesdeUrl(
   url: string
@@ -404,6 +490,10 @@ function obtenerIdDesdeUrl(
   ];
 }
 
+
+/* ==================================================
+   PAGINACION
+================================================== */
 
 function mostrarPaginacion(
   pagination:
@@ -434,6 +524,7 @@ function mostrarPaginacion(
       cargarPokemons(
         pagination.page - 1
       );
+
     }
   );
 
@@ -467,6 +558,7 @@ function mostrarPaginacion(
       cargarPokemons(
         pagination.page + 1
       );
+
     }
   );
 
@@ -484,14 +576,20 @@ function mostrarPaginacion(
 }
 
 
+/* ==================================================
+   DETALLES
+================================================== */
+
 async function mostrarDetalles(
   nombre: string
 ): Promise<void> {
 
   detailsContainer.innerHTML = `
+
     <p>
       Cargando información...
     </p>
+
   `;
 
   try {
@@ -502,6 +600,7 @@ async function mostrarDetalles(
       );
 
     detailsContainer.innerHTML = `
+
       <div class="pokemon-details">
 
         <h2>
@@ -515,13 +614,23 @@ async function mostrarDetalles(
         >
 
         <p>
-          <strong>Tipos:</strong>
+
+          <strong>
+            Tipos:
+          </strong>
+
           ${pokemon.types.join(", ")}
+
         </p>
 
         <p>
-          <strong>Habilidades:</strong>
+
+          <strong>
+            Habilidades:
+          </strong>
+
           ${pokemon.abilities.join(", ")}
+
         </p>
 
         <h3>
@@ -529,25 +638,34 @@ async function mostrarDetalles(
         </h3>
 
         <ul>
+
           ${
             pokemon.stats
               ? Object.entries(
                   pokemon.stats
                 )
+
                   .map(
                     ([nombre, valor]) => `
+
                       <li>
                         ${nombre}: ${valor}
                       </li>
+
                     `
                   )
+
                   .join("")
+
               : `
+
                   <li>
                     No disponibles
                   </li>
+
                 `
           }
+
         </ul>
 
         <h3>
@@ -555,6 +673,7 @@ async function mostrarDetalles(
         </h3>
 
         <p>
+
           ${
             pokemon.evolution
               ? pokemon.evolution.join(
@@ -562,6 +681,7 @@ async function mostrarDetalles(
                 )
               : "No disponible"
           }
+
         </p>
 
         <button
@@ -578,6 +698,7 @@ async function mostrarDetalles(
         <div id="favoriteMessage"></div>
 
       </div>
+
     `;
 
     const favoriteButton =
@@ -588,9 +709,11 @@ async function mostrarDetalles(
     favoriteButton.addEventListener(
       "click",
       () => {
+
         mostrarSelectorColeccion(
           pokemon
         );
+
       }
     );
 
@@ -610,6 +733,7 @@ async function mostrarDetalles(
           top: 0,
           behavior: "smooth"
         });
+
       }
     );
 
@@ -620,17 +744,26 @@ async function mostrarDetalles(
   } catch (error) {
 
     detailsContainer.innerHTML = `
+
       <p>
+
         ${
           error instanceof Error
             ? error.message
             : "No se pudo obtener la información."
         }
+
       </p>
+
     `;
+
   }
 }
 
+
+/* ==================================================
+   SELECTOR DE COLECCION
+================================================== */
 
 async function mostrarSelectorColeccion(
   pokemon: Pokemon
@@ -642,9 +775,11 @@ async function mostrarSelectorColeccion(
     ) as HTMLDivElement;
 
   message.innerHTML = `
+
     <p>
       Cargando colecciones...
     </p>
+
   `;
 
   try {
@@ -655,52 +790,76 @@ async function mostrarSelectorColeccion(
       );
 
     if (!response.ok) {
+
       throw new Error(
         "No se pudieron cargar las colecciones"
       );
+
     }
 
     const collections:
       Collection[] =
       await response.json();
 
-    if (collections.length === 0) {
+    if (
+      collections.length === 0
+    ) {
 
       message.innerHTML = `
+
         <p>
+
           No tienes colecciones.
-          Crea una en la sección "Mis colecciones".
+          Crea una en la sección
+          "Mis colecciones".
+
         </p>
+
       `;
 
       return;
     }
 
     message.innerHTML = `
-      <div style="margin-top: 15px;">
+
+      <div
+        style="margin-top: 15px;"
+      >
 
         <label>
           Selecciona una colección:
         </label>
 
         <select id="collectionSelect">
-          ${collections
-            .map(
-              collection => `
-                <option value="${collection.id}">
-                  ${collection.name}
-                </option>
-              `
-            )
-            .join("")
+
+          ${
+            collections
+              .map(
+                collection => `
+
+                  <option
+                    value="${collection.id}"
+                  >
+
+                    ${collection.name}
+
+                  </option>
+
+                `
+              )
+              .join("")
           }
+
         </select>
 
-        <button id="saveFavoriteButton">
+        <button
+          id="saveFavoriteButton"
+        >
           Guardar
         </button>
 
       </div>
+
     `;
 
     const saveButton =
@@ -718,29 +877,41 @@ async function mostrarSelectorColeccion(
           ) as HTMLSelectElement;
 
         const collectionId =
-          Number(select.value);
+          Number(
+            select.value
+          );
 
         await guardarFavorito(
           pokemon,
           collectionId
         );
+
       }
     );
 
   } catch (error) {
 
     message.innerHTML = `
+
       <p>
+
         ${
           error instanceof Error
             ? error.message
             : "Error cargando colecciones."
         }
+
       </p>
+
     `;
+
   }
 }
 
+
+/* ==================================================
+   GUARDAR FAVORITO
+================================================== */
 
 async function guardarFavorito(
   pokemon: Pokemon,
@@ -758,21 +929,25 @@ async function guardarFavorito(
       await fetch(
         `${COLLECTIONS_URL}/${collectionId}/favorites`,
         {
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
             "Content-Type":
               "application/json"
           },
 
-          body: JSON.stringify({
-            pokemonId:
-              pokemon.id,
-            pokemonName:
-              pokemon.name,
-            organizationId:
-              ORGANIZATION_ID
-          })
+          body:
+            JSON.stringify({
+              pokemonId:
+                pokemon.id,
+
+              pokemonName:
+                pokemon.name,
+
+              organizationId:
+                ORGANIZATION_ID
+            })
         }
       );
 
@@ -780,16 +955,20 @@ async function guardarFavorito(
       await response.json();
 
     if (!response.ok) {
+
       throw new Error(
         result.message ||
         "No se pudo guardar el favorito"
       );
+
     }
 
     message.innerHTML = `
+
       <p>
         ⭐ Pokémon guardado correctamente.
       </p>
+
     `;
 
     cargarColecciones();
@@ -797,17 +976,26 @@ async function guardarFavorito(
   } catch (error) {
 
     message.innerHTML = `
+
       <p>
+
         ${
           error instanceof Error
             ? error.message
             : "Error al guardar el favorito."
         }
+
       </p>
+
     `;
+
   }
 }
 
+
+/* ==================================================
+   CARGAR COLECCIONES
+================================================== */
 
 async function cargarColecciones(): Promise<void> {
 
@@ -819,9 +1007,11 @@ async function cargarColecciones(): Promise<void> {
       );
 
     if (!response.ok) {
+
       throw new Error(
         "Error obteniendo colecciones"
       );
+
     }
 
     const collections:
@@ -831,12 +1021,16 @@ async function cargarColecciones(): Promise<void> {
     collectionsContainer.innerHTML =
       "";
 
-    if (collections.length === 0) {
+    if (
+      collections.length === 0
+    ) {
 
       collectionsContainer.innerHTML = `
+
         <p>
           No tienes colecciones todavía.
         </p>
+
       `;
 
       return;
@@ -856,6 +1050,7 @@ async function cargarColecciones(): Promise<void> {
         "collection-card";
 
       div.innerHTML = `
+
         <h3>
           ${collection.name}
         </h3>
@@ -877,6 +1072,7 @@ async function cargarColecciones(): Promise<void> {
         <div
           id="favorites-${collection.id}"
         ></div>
+
       `;
 
       collectionsContainer.appendChild(
@@ -905,8 +1101,10 @@ async function cargarColecciones(): Promise<void> {
             cargarFavoritos(
               id
             );
+
           }
         );
+
       }
     );
 
@@ -931,21 +1129,30 @@ async function cargarColecciones(): Promise<void> {
             await eliminarColeccion(
               id
             );
+
           }
         );
+
       }
     );
 
   } catch (error) {
 
     collectionsContainer.innerHTML = `
+
       <p>
         No se pudieron cargar las colecciones.
       </p>
+
     `;
+
   }
 }
 
+
+/* ==================================================
+   CARGAR FAVORITOS
+================================================== */
 
 async function cargarFavoritos(
   collectionId: number
@@ -957,9 +1164,11 @@ async function cargarFavoritos(
     ) as HTMLDivElement;
 
   container.innerHTML = `
+
     <p>
       Cargando favoritos...
     </p>
+
   `;
 
   try {
@@ -970,21 +1179,27 @@ async function cargarFavoritos(
       );
 
     if (!response.ok) {
+
       throw new Error(
         "No se pudieron obtener los favoritos"
       );
+
     }
 
     const favorites:
       Favorite[] =
       await response.json();
 
-    if (favorites.length === 0) {
+    if (
+      favorites.length === 0
+    ) {
 
       container.innerHTML = `
+
         <p>
           Esta colección no tiene favoritos.
         </p>
+
       `;
 
       return;
@@ -994,7 +1209,10 @@ async function cargarFavoritos(
       favorites
         .map(
           favorite => `
-            <div class="favorite-item">
+
+            <div
+              class="favorite-item"
+            >
 
               <span>
                 ⭐ ${favorite.pokemon_name}
@@ -1009,6 +1227,7 @@ async function cargarFavoritos(
               </button>
 
             </div>
+
           `
         )
         .join("");
@@ -1046,21 +1265,30 @@ async function cargarFavoritos(
             cargarFavoritos(
               collection
             );
+
           }
         );
+
       }
     );
 
   } catch (error) {
 
     container.innerHTML = `
+
       <p>
         Error cargando favoritos.
       </p>
+
     `;
+
   }
 }
 
+
+/* ==================================================
+   ELIMINAR FAVORITO
+================================================== */
 
 async function eliminarFavorito(
   collectionId: number,
@@ -1087,6 +1315,7 @@ async function eliminarFavorito(
         result.message ||
         "No se pudo eliminar"
       );
+
     }
 
   } catch (error) {
@@ -1096,9 +1325,14 @@ async function eliminarFavorito(
         ? error.message
         : "Error eliminando favorito"
     );
+
   }
 }
 
+
+/* ==================================================
+   CREAR COLECCION
+================================================== */
 
 async function crearColeccion(): Promise<void> {
 
@@ -1129,10 +1363,12 @@ async function crearColeccion(): Promise<void> {
               "application/json"
           },
 
-          body: JSON.stringify({
-            name,
-            organizationId: ORGANIZATION_ID
-          })
+          body:
+            JSON.stringify({
+              name,
+              organizationId:
+                ORGANIZATION_ID
+            })
         }
       );
 
@@ -1140,10 +1376,12 @@ async function crearColeccion(): Promise<void> {
       await response.json();
 
     if (!response.ok) {
+
       throw new Error(
         result.message ||
         "No se pudo crear la colección"
       );
+
     }
 
     collectionNameInput.value =
@@ -1158,9 +1396,14 @@ async function crearColeccion(): Promise<void> {
         ? error.message
         : "Error creando colección."
     );
+
   }
 }
 
+
+/* ==================================================
+   ELIMINAR COLECCION
+================================================== */
 
 async function eliminarColeccion(
   collectionId: number
@@ -1187,9 +1430,11 @@ async function eliminarColeccion(
       );
 
     if (!response.ok) {
+
       throw new Error(
         "No se pudo eliminar la colección"
       );
+
     }
 
     cargarColecciones();
@@ -1201,21 +1446,1228 @@ async function eliminarColeccion(
         ? error.message
         : "Error eliminando colección."
     );
+
   }
 }
 
+
+/* ==================================================
+   AI TOOLS
+================================================== */
+
+function capitalize(
+  value: string
+): string {
+
+  return (
+    value.charAt(0).toUpperCase() +
+    value.slice(1)
+  );
+}
+
+
+function mostrarJSON(
+  element: HTMLElement,
+  result: unknown
+): void {
+
+  element.textContent =
+    JSON.stringify(
+      result,
+      null,
+      2
+    );
+}
+
+
+function mostrarErrorVisual(
+  container: HTMLElement,
+  result: any
+): void {
+
+  const message =
+    result?.error?.message ||
+    "No se pudo ejecutar la herramienta.";
+
+  container.innerHTML = `
+
+    <div class="ai-error">
+
+      <strong>
+        Error
+      </strong>
+
+      <p>
+        ${message}
+      </p>
+
+      ${
+        result?.error?.code
+          ? `
+            <small>
+              Código:
+              ${result.error.code}
+            </small>
+          `
+          : ""
+      }
+
+    </div>
+
+  `;
+}
+
+
+function renderPokemonVisual(
+  container: HTMLElement,
+  result: any,
+  fullDetails = false
+): void {
+
+  if (
+    !result?.success ||
+    !result?.data
+  ) {
+
+    mostrarErrorVisual(
+      container,
+      result
+    );
+
+    return;
+  }
+
+  const pokemon =
+    result.data;
+
+  const types =
+    Array.isArray(
+      pokemon.types
+    )
+      ? pokemon.types
+      : [];
+
+  const abilities =
+    Array.isArray(
+      pokemon.abilities
+    )
+      ? pokemon.abilities
+      : [];
+
+  const stats =
+    pokemon.stats &&
+    typeof pokemon.stats === "object"
+      ? Object.entries(
+          pokemon.stats
+        )
+      : [];
+
+  container.innerHTML = `
+
+    <div class="ai-success">
+
+      Herramienta ejecutada correctamente:
+
+      <strong>
+        ${result.tool}
+      </strong>
+
+    </div>
+
+
+    <div class="ai-pokemon-card">
+
+      ${
+        pokemon.image
+          ? `
+            <img
+              src="${pokemon.image}"
+              alt="${pokemon.name}"
+            >
+          `
+          : ""
+      }
+
+
+      <div class="ai-pokemon-info">
+
+        <h3>
+          ${pokemon.name}
+        </h3>
+
+
+        <p>
+
+          <strong>
+            ID:
+          </strong>
+
+          ${pokemon.id}
+
+        </p>
+
+
+        <p>
+
+          <strong>
+            Tipos:
+          </strong>
+
+          ${
+            types.length
+              ? types
+                  .map(
+                    (type: string) => `
+
+                      <span class="ai-type">
+                        ${type}
+                      </span>
+
+                    `
+                  )
+                  .join("")
+              : "No disponibles"
+          }
+
+        </p>
+
+
+        ${
+          fullDetails &&
+          abilities.length
+            ? `
+
+              <p>
+
+                <strong>
+                  Habilidades:
+                </strong>
+
+              </p>
+
+              <div class="ai-abilities">
+
+                ${
+                  abilities
+                    .map(
+                      (ability: string) => `
+
+                        <span class="ai-ability">
+                          ${ability}
+                        </span>
+
+                      `
+                    )
+                    .join("")
+                }
+
+              </div>
+
+            `
+            : ""
+        }
+
+      </div>
+
+    </div>
+
+
+    ${
+      fullDetails &&
+      stats.length
+        ? `
+
+          <div class="ai-stats">
+
+            ${
+              stats
+                .map(
+                  ([name, value]) => `
+
+                    <div class="ai-stat">
+
+                      <strong>
+                        ${value}
+                      </strong>
+
+                      <span>
+                        ${name}
+                      </span>
+
+                    </div>
+
+                  `
+                )
+                .join("")
+            }
+
+          </div>
+
+        `
+        : ""
+    }
+
+
+    ${
+      fullDetails &&
+      Array.isArray(
+        pokemon.evolution
+      )
+        ? `
+
+          <div class="ai-evolution">
+
+            <strong>
+              Evolución:
+            </strong>
+
+            <p>
+
+              ${
+                pokemon.evolution.length
+                  ? pokemon.evolution.join(
+                      " → "
+                    )
+                  : "No disponible"
+              }
+
+            </p>
+
+          </div>
+
+        `
+        : ""
+    }
+
+  `;
+}
+
+
+function renderComparisonCard(
+  pokemon: any
+): string {
+
+  const stats =
+    pokemon.stats &&
+    typeof pokemon.stats === "object"
+      ? Object.entries(
+          pokemon.stats
+        )
+      : [];
+
+  return `
+
+    <div class="ai-comparison-card">
+
+      ${
+        pokemon.image
+          ? `
+            <img
+              src="${pokemon.image}"
+              alt="${pokemon.name}"
+            >
+          `
+          : ""
+      }
+
+
+      <h3>
+        ${pokemon.name}
+      </h3>
+
+
+      <p>
+
+        <strong>
+          ID:
+        </strong>
+
+        ${pokemon.id}
+
+      </p>
+
+
+      <p>
+
+        <strong>
+          Tipos:
+        </strong>
+
+        ${
+          Array.isArray(
+            pokemon.types
+          )
+            ? pokemon.types
+                .map(
+                  (type: string) => `
+
+                    <span class="ai-type">
+                      ${type}
+                    </span>
+
+                  `
+                )
+                .join("")
+            : "No disponibles"
+        }
+
+      </p>
+
+
+      ${
+        stats.length
+          ? `
+
+            <div class="ai-stats">
+
+              ${
+                stats
+                  .map(
+                    ([name, value]) => `
+
+                      <div class="ai-stat">
+
+                        <strong>
+                          ${value}
+                        </strong>
+
+                        <span>
+                          ${name}
+                        </span>
+
+                      </div>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </div>
+
+          `
+          : ""
+      }
+
+    </div>
+
+  `;
+}
+
+
+function renderComparisonVisual(
+  container: HTMLElement,
+  result: any
+): void {
+
+  if (
+    !result?.success ||
+    !result?.data
+  ) {
+
+    mostrarErrorVisual(
+      container,
+      result
+    );
+
+    return;
+  }
+
+  container.innerHTML = `
+
+    <div class="ai-success">
+
+      Herramienta ejecutada correctamente:
+
+      <strong>
+        compare_pokemon
+      </strong>
+
+    </div>
+
+
+    <div class="ai-comparison">
+
+      ${renderComparisonCard(
+        result.data.pokemon1
+      )}
+
+      ${renderComparisonCard(
+        result.data.pokemon2
+      )}
+
+    </div>
+
+  `;
+}
+
+
+/* ==================================================
+   CAMBIO VISUAL / JSON
+================================================== */
+
+function configurarVistaTool(
+  toolName: string
+): void {
+
+  const buttons =
+    document.querySelectorAll(
+      `.tool-view-button[data-tool="${toolName}"]`
+    );
+
+  const visual =
+    document.getElementById(
+      `tool${capitalize(toolName)}Visual`
+    ) as HTMLElement | null;
+
+  const json =
+    document.getElementById(
+      `tool${capitalize(toolName)}Result`
+    ) as HTMLElement | null;
+
+  if (
+    !visual ||
+    !json
+  ) {
+
+    return;
+
+  }
+
+  /*
+   * IMPORTANTE:
+   * Al cargar la página:
+   *
+   * VISUAL = visible
+   * JSON = oculto
+   */
+
+  visual.hidden =
+    false;
+
+  json.hidden =
+    true;
+
+
+  buttons.forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const view =
+            (
+              button as HTMLElement
+            ).dataset.view;
+
+          buttons.forEach(
+            item => {
+
+              item.classList.remove(
+                "active"
+              );
+
+            }
+          );
+
+          button.classList.add(
+            "active"
+          );
+
+
+          if (
+            view === "json"
+          ) {
+
+            visual.hidden =
+              true;
+
+            json.hidden =
+              false;
+
+          } else {
+
+            visual.hidden =
+              false;
+
+            json.hidden =
+              true;
+
+          }
+
+        }
+      );
+
+    }
+  );
+}
+
+
+/* ==================================================
+   SEARCH TOOL
+================================================== */
+
+async function ejecutarSearchTool(): Promise<void> {
+
+  const input =
+    document.getElementById(
+      "toolSearchName"
+    ) as HTMLInputElement;
+
+  const visual =
+    document.getElementById(
+      "toolSearchVisual"
+    ) as HTMLElement;
+
+  const json =
+    document.getElementById(
+      "toolSearchResult"
+    ) as HTMLElement;
+
+  const name =
+    input.value.trim();
+
+
+  if (!name) {
+
+    const result = {
+
+      success:
+        false,
+
+      tool:
+        "search_pokemon",
+
+      error: {
+
+        code:
+          "INVALID_NAME",
+
+        message:
+          "Ingresa un nombre de Pokémon"
+
+      }
+
+    };
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+    mostrarErrorVisual(
+      visual,
+      result
+    );
+
+    return;
+  }
+
+
+  visual.innerHTML = `
+
+    <p>
+      Ejecutando herramienta...
+    </p>
+
+  `;
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${TOOLS_URL}/search`,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              name
+            })
+        }
+      );
+
+    const result =
+      await response.json();
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    renderPokemonVisual(
+      visual,
+      result,
+      false
+    );
+
+  } catch {
+
+    const result = {
+
+      success:
+        false,
+
+      tool:
+        "search_pokemon",
+
+      error: {
+
+        code:
+          "NETWORK_ERROR",
+
+        message:
+          "No se pudo conectar con el servidor"
+
+      }
+
+    };
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    mostrarErrorVisual(
+      visual,
+      result
+    );
+  }
+}
+
+
+/* ==================================================
+   DETAILS TOOL
+================================================== */
+
+async function ejecutarDetailsTool(): Promise<void> {
+
+  const input =
+    document.getElementById(
+      "toolDetailsId"
+    ) as HTMLInputElement;
+
+  const visual =
+    document.getElementById(
+      "toolDetailsVisual"
+    ) as HTMLElement;
+
+  const json =
+    document.getElementById(
+      "toolDetailsResult"
+    ) as HTMLElement;
+
+  const id =
+    input.value.trim();
+
+
+  if (!id) {
+
+    const result = {
+
+      success:
+        false,
+
+      tool:
+        "get_pokemon_details",
+
+      error: {
+
+        code:
+          "INVALID_ID",
+
+        message:
+          "Ingresa un ID de Pokémon"
+
+      }
+
+    };
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    mostrarErrorVisual(
+      visual,
+      result
+    );
+
+    return;
+  }
+
+
+  visual.innerHTML = `
+
+    <p>
+      Ejecutando herramienta...
+    </p>
+
+  `;
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${TOOLS_URL}/details`,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              id
+            })
+        }
+      );
+
+
+    const result =
+      await response.json();
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    renderPokemonVisual(
+      visual,
+      result,
+      true
+    );
+
+  } catch {
+
+    const result = {
+
+      success:
+        false,
+
+      tool:
+        "get_pokemon_details",
+
+      error: {
+
+        code:
+          "NETWORK_ERROR",
+
+        message:
+          "No se pudo conectar con el servidor"
+
+      }
+
+    };
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    mostrarErrorVisual(
+      visual,
+      result
+    );
+  }
+}
+
+
+/* ==================================================
+   COMPARE TOOL
+================================================== */
+
+async function ejecutarCompareTool(): Promise<void> {
+
+  const input1 =
+    document.getElementById(
+      "toolPokemon1"
+    ) as HTMLInputElement;
+
+  const input2 =
+    document.getElementById(
+      "toolPokemon2"
+    ) as HTMLInputElement;
+
+  const visual =
+    document.getElementById(
+      "toolCompareVisual"
+    ) as HTMLElement;
+
+  const json =
+    document.getElementById(
+      "toolCompareResult"
+    ) as HTMLElement;
+
+
+  const pokemon1 =
+    input1.value.trim();
+
+  const pokemon2 =
+    input2.value.trim();
+
+
+  if (
+    !pokemon1 ||
+    !pokemon2
+  ) {
+
+    const result = {
+
+      success:
+        false,
+
+      tool:
+        "compare_pokemon",
+
+      error: {
+
+        code:
+          "INVALID_PARAMETERS",
+
+        message:
+          "Debes ingresar los dos Pokémon"
+
+      }
+
+    };
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    mostrarErrorVisual(
+      visual,
+      result
+    );
+
+    return;
+  }
+
+
+  visual.innerHTML = `
+
+    <p>
+      Ejecutando comparación...
+    </p>
+
+  `;
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${TOOLS_URL}/compare`,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              pokemon1,
+              pokemon2
+            })
+        }
+      );
+
+
+    const result =
+      await response.json();
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    renderComparisonVisual(
+      visual,
+      result
+    );
+
+  } catch {
+
+    const result = {
+
+      success:
+        false,
+
+      tool:
+        "compare_pokemon",
+
+      error: {
+
+        code:
+          "NETWORK_ERROR",
+
+        message:
+          "No se pudo conectar con el servidor"
+
+      }
+
+    };
+
+
+    mostrarJSON(
+      json,
+      result
+    );
+
+
+    mostrarErrorVisual(
+      visual,
+      result
+    );
+  }
+}
+
+
+/* ==================================================
+   EVENTOS AI TOOLS
+================================================== */
+
+const toolSearchButton =
+  document.getElementById(
+    "toolSearchButton"
+  ) as HTMLButtonElement | null;
+
+const toolDetailsButton =
+  document.getElementById(
+    "toolDetailsButton"
+  ) as HTMLButtonElement | null;
+
+const toolCompareButton =
+  document.getElementById(
+    "toolCompareButton"
+  ) as HTMLButtonElement | null;
+
+
+if (
+  toolSearchButton
+) {
+
+  toolSearchButton.addEventListener(
+    "click",
+    ejecutarSearchTool
+  );
+
+}
+
+
+if (
+  toolDetailsButton
+) {
+
+  toolDetailsButton.addEventListener(
+    "click",
+    ejecutarDetailsTool
+  );
+
+}
+
+
+if (
+  toolCompareButton
+) {
+
+  toolCompareButton.addEventListener(
+    "click",
+    ejecutarCompareTool
+  );
+
+}
+
+
+/* ENTER SEARCH */
+
+const toolSearchInput =
+  document.getElementById(
+    "toolSearchName"
+  ) as HTMLInputElement | null;
+
+if (
+  toolSearchInput
+) {
+
+  toolSearchInput.addEventListener(
+    "keydown",
+    (
+      event: KeyboardEvent
+    ) => {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        ejecutarSearchTool();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ENTER DETAILS */
+
+const toolDetailsInput =
+  document.getElementById(
+    "toolDetailsId"
+  ) as HTMLInputElement | null;
+
+if (
+  toolDetailsInput
+) {
+
+  toolDetailsInput.addEventListener(
+    "keydown",
+    (
+      event: KeyboardEvent
+    ) => {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        ejecutarDetailsTool();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ENTER COMPARE */
+
+const toolPokemon1Input =
+  document.getElementById(
+    "toolPokemon1"
+  ) as HTMLInputElement | null;
+
+const toolPokemon2Input =
+  document.getElementById(
+    "toolPokemon2"
+  ) as HTMLInputElement | null;
+
+
+if (
+  toolPokemon1Input
+) {
+
+  toolPokemon1Input.addEventListener(
+    "keydown",
+    (
+      event: KeyboardEvent
+    ) => {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        ejecutarCompareTool();
+
+      }
+
+    }
+  );
+
+}
+
+
+if (
+  toolPokemon2Input
+) {
+
+  toolPokemon2Input.addEventListener(
+    "keydown",
+    (
+      event: KeyboardEvent
+    ) => {
+
+      if (
+        event.key === "Enter"
+      ) {
+
+        ejecutarCompareTool();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* CONFIGURAR VISTAS */
+
+configurarVistaTool(
+  "search"
+);
+
+configurarVistaTool(
+  "details"
+);
+
+configurarVistaTool(
+  "compare"
+);
+
+
+/* ==================================================
+   ERROR
+================================================== */
 
 function mostrarError(
   mensaje: string
 ): void {
 
   resultsContainer.innerHTML = `
+
     <p>
       ${mensaje}
     </p>
+
   `;
 }
 
+
+/* ==================================================
+   EVENTOS PRINCIPALES
+================================================== */
 
 searchButton.addEventListener(
   "click",
@@ -1232,8 +2684,11 @@ searchInput.addEventListener(
     if (
       event.key === "Enter"
     ) {
+
       buscarPokemon();
+
     }
+
   }
 );
 
@@ -1245,7 +2700,10 @@ typeFilter.addEventListener(
     detailsContainer.innerHTML =
       "";
 
-    cargarPokemons(1);
+    cargarPokemons(
+      1
+    );
+
   }
 );
 
@@ -1265,17 +2723,25 @@ collectionNameInput.addEventListener(
     if (
       event.key === "Enter"
     ) {
+
       crearColeccion();
+
     }
+
   }
 );
 
+
+/* ==================================================
+   INICIO
+================================================== */
 
 cargarPokemons();
 
 crearSelectorOrganizacion();
 
 cargarColecciones();
+
 
 (
   window as any
