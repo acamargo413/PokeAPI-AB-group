@@ -5,6 +5,8 @@ import pokemonRoutes from "./routes/pokemon.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import favoriteRoutes from "./routes/favorite.routes.js";
 import toolsRoutes from "./routes/tools.routes.js";
+import elevenlabsRoutes from "./routes/elevenlabs.routes.js";
+
 
 const app = express();
 
@@ -35,6 +37,11 @@ app.use(
 app.use(
   "/api/tools",
   toolsRoutes
+);
+
+app.use(
+  "/api/elevenlabs",
+  elevenlabsRoutes
 );
 
 export default app;

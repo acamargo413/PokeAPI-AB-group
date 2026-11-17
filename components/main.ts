@@ -2747,3 +2747,135 @@ cargarColecciones();
   window as any
 ).mostrarDetalles =
   mostrarDetalles;
+
+// ==========================================================
+// ELEVENLABS - LLAMADA DE PRUEBA
+// ==========================================================
+
+const configurarLlamadaElevenLabs = () => {
+
+  const button =
+    document.getElementById(
+      "testCallButton"
+    ) as HTMLButtonElement | null;
+
+  const phoneInput =
+    document.getElementById(
+      "testPhoneNumber"
+    ) as HTMLInputElement | null;
+
+  const status =
+    document.getElementById(
+      "testCallStatus"
+    ) as HTMLDivElement | null;
+
+  if (!button || !phoneInput || !status) {
+    return;
+  }
+
+  button.addEventListener("click", async () => {
+
+    const toNumber =
+      phoneInput.value.trim();
+
+    if (!toNumber) {
+
+      status.className =
+        "call-test-status error";
+
+      status.textContent =
+        "Debes ingresar un número de destino.";
+
+      return;
+    }
+
+    button.disabled = true;
+
+    status.className =
+      "call-test-status loading";
+
+    status.textContent =
+      "📞 Iniciando llamada de prueba...";
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/elevenlabs/test-call",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              toNumber
+            })
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (!response.ok ||
+          !result.success) {
+
+        throw new Error(
+          result.error ||
+          result.message ||
+          "No se pudo iniciar la llamada"
+        );
+      }
+
+      const conversationId =
+        result.data?.conversation_id;
+
+      const sipCallId =
+        result.data?.sip_call_id;
+
+      status.className =
+        "call-test-status success";
+
+      status.innerHTML = `
+        <strong>✅ Llamada iniciada correctamente</strong>
+        <br>
+        La llamada fue enviada al número indicado.
+        ${
+          conversationId
+            ? `<br><small>Conversation ID: ${conversationId}</small>`
+            : ""
+        }
+        ${
+          sipCallId
+            ? `<br><small>SIP Call ID: ${sipCallId}</small>`
+            : ""
+        }
+      `;
+
+    } catch (error) {
+
+      console.error(
+        "Error en llamada ElevenLabs:",
+        error
+      );
+
+      status.className =
+        "call-test-status error";
+
+      status.textContent =
+        error instanceof Error
+          ? `❌ ${error.message}`
+          : "❌ No se pudo iniciar la llamada.";
+
+    } finally {
+
+      button.disabled = false;
+    }
+  });
+};
+
+
+// Inicializar llamada de prueba
+configurarLlamadaElevenLabs();

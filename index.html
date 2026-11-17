@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -10,7 +12,13 @@
 
   <title>Pokémon Explorer</title>
 
+
   <style>
+
+    /* ==========================================================
+       BASE
+    ========================================================== */
+
     * {
       box-sizing: border-box;
     }
@@ -26,15 +34,37 @@
     .container {
       width: 100%;
       max-width: 1100px;
-      margin: auto;
+      margin: 0 auto;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 25px;
+      margin: 0 0 30px;
     }
 
-    /* BUSCADOR */
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #333;
+      color: white;
+      font-size: 14px;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+
+    /* ==========================================================
+       BUSCADOR
+    ========================================================== */
 
     .search-container {
       display: flex;
@@ -57,31 +87,17 @@
       background: white;
     }
 
-    button {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #333;
-      color: white;
-      font-size: 14px;
-    }
 
-    button:hover {
-      opacity: 0.85;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* RESULTADOS */
+    /* ==========================================================
+       RESULTADOS
+    ========================================================== */
 
     #results {
       display: grid;
-      grid-template-columns:
-        repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(
+        auto-fill,
+        minmax(180px, 1fr)
+      );
       gap: 15px;
     }
 
@@ -90,6 +106,7 @@
       padding: 15px;
       border-radius: 12px;
       text-align: center;
+
       box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.08);
     }
@@ -109,7 +126,10 @@
       margin-top: 10px;
     }
 
-    /* PAGINACIÓN */
+
+    /* ==========================================================
+       PAGINACIÓN
+    ========================================================== */
 
     #pagination {
       display: flex;
@@ -120,13 +140,17 @@
       flex-wrap: wrap;
     }
 
-    /* DETALLES */
+
+    /* ==========================================================
+       DETALLES
+    ========================================================== */
 
     #details {
       margin-top: 30px;
       background: white;
       padding: 25px;
       border-radius: 12px;
+
       box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.08);
     }
@@ -158,7 +182,10 @@
       margin-top: 25px;
     }
 
-    /* FAVORITOS */
+
+    /* ==========================================================
+       FAVORITOS
+    ========================================================== */
 
     .favorite-button {
       margin-top: 15px;
@@ -176,13 +203,17 @@
       border-radius: 8px;
     }
 
-    /* COLECCIONES */
+
+    /* ==========================================================
+       COLECCIONES
+    ========================================================== */
 
     .collections-section {
       margin-top: 30px;
       padding: 25px;
       background: white;
       border-radius: 12px;
+
       box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.08);
     }
@@ -232,9 +263,12 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
+
       padding: 10px;
       margin-top: 8px;
+
       background: white;
+
       border-radius: 8px;
       border: 1px solid #ddd;
     }
@@ -247,15 +281,19 @@
       background: #dc3545;
     }
 
-    /* ==============================
+
+    /* ==========================================================
        AI TOOLS
-    ============================== */
+    ========================================================== */
 
     .ai-tools {
       margin-top: 30px;
       padding: 25px;
+
       background: white;
+
       border-radius: 12px;
+
       box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.08);
     }
@@ -267,8 +305,10 @@
 
     .tool-card {
       background: #f8f8f8;
+
       border: 1px solid #ddd;
       border-radius: 10px;
+
       padding: 20px;
       margin-bottom: 20px;
     }
@@ -291,9 +331,12 @@
     .tool-form input {
       flex: 1;
       min-width: 0;
+
       padding: 12px;
+
       border: 1px solid #ccc;
       border-radius: 8px;
+
       font-size: 14px;
     }
 
@@ -301,7 +344,10 @@
       white-space: nowrap;
     }
 
-    /* CONTROLES VISUAL / JSON */
+
+    /* ==========================================================
+       VISUAL / JSON
+    ========================================================== */
 
     .tool-view-controls {
       display: flex;
@@ -312,8 +358,11 @@
     .tool-view-button {
       background: #e5e5e5;
       color: #222;
+
       border: 1px solid #ccc;
+
       padding: 8px 14px;
+
       border-radius: 7px;
       cursor: pointer;
     }
@@ -324,52 +373,78 @@
       border-color: #222;
     }
 
-    /* RESULTADO VISUAL */
-
     .tool-visual-result {
       margin-top: 15px;
     }
 
-    /* RESULTADO JSON */
-
     .tool-json-result {
       display: none;
+
       margin-top: 15px;
       padding: 15px;
+
       background: #222;
       color: #f1f1f1;
+
       border-radius: 8px;
+
       overflow-x: auto;
+
       white-space: pre-wrap;
       word-break: break-word;
+
       font-size: 13px;
       line-height: 1.5;
     }
-
-    /* Cuando JS lo muestra */
 
     .tool-json-result:not([hidden]) {
       display: block;
     }
 
-    /* MENSAJE DE EXITO */
+
+    /* ==========================================================
+       MENSAJES AI
+    ========================================================== */
 
     .ai-success {
       padding: 10px;
       margin-bottom: 12px;
+
       background: #f1f1f1;
+
       border-radius: 8px;
+
       font-size: 13px;
     }
 
-    /* TARJETA POKEMON */
+    .ai-error {
+      padding: 15px;
+
+      background: #fff0f0;
+
+      border: 1px solid #e0b0b0;
+
+      border-radius: 8px;
+    }
+
+    .ai-error strong {
+      color: #b00020;
+    }
+
+
+    /* ==========================================================
+       TARJETA POKÉMON AI
+    ========================================================== */
 
     .ai-pokemon-card {
       display: flex;
       align-items: center;
       gap: 25px;
+
       padding: 20px;
+
       background: white;
+
       border: 1px solid #ddd;
       border-radius: 10px;
     }
@@ -377,6 +452,7 @@
     .ai-pokemon-card img {
       width: 130px;
       height: 130px;
+
       object-fit: contain;
     }
 
@@ -386,40 +462,56 @@
       margin-top: 0;
     }
 
-    /* TIPOS */
+
+    /* ==========================================================
+       TIPOS Y HABILIDADES
+    ========================================================== */
 
     .ai-type,
     .ai-ability {
       display: inline-block;
+
       margin: 3px;
       padding: 4px 9px;
+
       background: #eee;
+
       border-radius: 20px;
+
       font-size: 12px;
+
       text-transform: capitalize;
     }
-
-    /* HABILIDADES */
 
     .ai-abilities {
       margin-bottom: 10px;
     }
 
-    /* ESTADISTICAS */
+
+    /* ==========================================================
+       ESTADÍSTICAS
+    ========================================================== */
 
     .ai-stats {
       display: grid;
+
       grid-template-columns:
         repeat(3, minmax(0, 1fr));
+
       gap: 8px;
+
       margin-top: 15px;
     }
 
     .ai-stat {
       padding: 10px;
+
       background: white;
+
       border: 1px solid #ddd;
+
       border-radius: 8px;
+
       text-align: center;
     }
 
@@ -430,58 +522,228 @@
 
     .ai-stat span {
       margin-top: 4px;
+
       font-size: 11px;
+
       text-transform: capitalize;
     }
 
-    /* EVOLUCION */
+
+    /* ==========================================================
+       EVOLUCIÓN
+    ========================================================== */
 
     .ai-evolution {
       margin-top: 15px;
+
       padding: 12px;
+
       background: white;
+
       border: 1px solid #ddd;
+
       border-radius: 8px;
     }
 
-    /* ERROR */
 
-    .ai-error {
-      padding: 15px;
-      background: #fff0f0;
-      border: 1px solid #e0b0b0;
-      border-radius: 8px;
-    }
-
-    .ai-error strong {
-      color: #b00020;
-    }
-
-    /* COMPARACION */
+    /* ==========================================================
+       COMPARACIÓN
+    ========================================================== */
 
     .ai-comparison {
       display: grid;
+
       grid-template-columns:
         repeat(2, minmax(0, 1fr));
+
       gap: 15px;
     }
 
     .ai-comparison-card {
       padding: 20px;
+
       background: white;
+
       border: 1px solid #ddd;
+
       border-radius: 10px;
     }
 
     .ai-comparison-card > img {
       display: block;
+
       width: 120px;
       height: 120px;
+
       object-fit: contain;
+
       margin: 0 auto;
     }
 
-    /* RESPONSIVE */
+
+    /* ==========================================================
+       ELEVENLABS
+    ========================================================== */
+
+    .elevenlabs-section {
+      margin-top: 30px;
+      padding: 25px;
+
+      background: white;
+
+      border-radius: 12px;
+
+      border: 1px solid #ddd;
+
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .elevenlabs-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+
+      margin-bottom: 20px;
+    }
+
+    .elevenlabs-icon {
+      width: 48px;
+      height: 48px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #222;
+      color: white;
+
+      border-radius: 12px;
+
+      font-size: 22px;
+    }
+
+    .elevenlabs-header h2 {
+      margin: 0;
+    }
+
+    .elevenlabs-header p {
+      margin: 5px 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .call-test-form {
+      margin-top: 20px;
+    }
+
+    .call-test-form label {
+      display: block;
+
+      margin-bottom: 8px;
+
+      font-weight: 600;
+    }
+
+    .call-input-row {
+      display: flex;
+
+      gap: 10px;
+
+      align-items: center;
+    }
+
+    .call-input-row input {
+      flex: 1;
+      min-width: 0;
+
+      padding: 12px 14px;
+
+      border: 1px solid #ccc;
+
+      border-radius: 8px;
+
+      font-size: 14px;
+    }
+
+    .call-input-row input:focus {
+      outline: none;
+
+      border-color: #f5c400;
+
+      box-shadow:
+        0 0 0 3px rgba(245, 196, 0, 0.15);
+    }
+
+    .tool-button {
+      border: none;
+
+      border-radius: 8px;
+
+      padding: 12px 18px;
+
+      cursor: pointer;
+
+      font-weight: 600;
+
+      background: #222;
+
+      color: white;
+    }
+
+    .tool-button:hover {
+      opacity: 0.9;
+    }
+
+    .tool-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .call-test-status {
+      margin-top: 15px;
+
+      padding: 10px 14px;
+
+      border-radius: 8px;
+
+      display: none;
+    }
+
+    .call-test-status.success {
+      display: block;
+
+      background: #e8f7ee;
+
+      color: #187a3d;
+
+      border: 1px solid #b8e2c8;
+    }
+
+    .call-test-status.error {
+      display: block;
+
+      background: #fdeaea;
+
+      color: #a52626;
+
+      border: 1px solid #efc0c0;
+    }
+
+    .call-test-status.loading {
+      display: block;
+
+      background: #f3f3f3;
+
+      color: #555;
+
+      border: 1px solid #ddd;
+    }
+
+
+    /* ==========================================================
+       RESPONSIVE
+    ========================================================== */
 
     @media (max-width: 600px) {
 
@@ -527,7 +789,9 @@
 
       .favorite-item {
         flex-direction: column;
+
         align-items: stretch;
+
         text-align: center;
       }
 
@@ -545,6 +809,7 @@
 
       .tool-form {
         flex-direction: column;
+
         align-items: stretch;
       }
 
@@ -555,6 +820,7 @@
 
       .ai-pokemon-card {
         flex-direction: column;
+
         text-align: center;
       }
 
@@ -574,7 +840,28 @@
       .tool-view-button {
         flex: 1;
       }
+
+      .elevenlabs-section {
+        padding: 15px;
+      }
+
+      .elevenlabs-header {
+        align-items: flex-start;
+      }
+
+      .call-input-row {
+        flex-direction: column;
+
+        align-items: stretch;
+      }
+
+      .call-input-row input,
+      .call-input-row button {
+        width: 100%;
+      }
+
     }
+
 
     @media (min-width: 601px)
       and (max-width: 900px) {
@@ -583,21 +870,34 @@
         grid-template-columns:
           repeat(3, minmax(0, 1fr));
       }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
   <div class="container">
+
+
+    <!-- ======================================================
+         TÍTULO
+    ======================================================= -->
 
     <h1>
       Pokémon Explorer
     </h1>
 
-    <!-- BUSCADOR -->
 
-    <div class="search-container">
+    <!-- ======================================================
+         BUSCADOR
+    ======================================================= -->
+
+    <section class="search-container">
 
       <input
         type="text"
@@ -686,41 +986,50 @@
 
       </select>
 
+
       <button id="searchButton">
         Buscar
       </button>
 
-    </div>
+    </section>
 
 
-    <!-- RESULTADOS -->
+    <!-- ======================================================
+         RESULTADOS
+    ======================================================= -->
 
-    <div id="results">
+    <section>
 
-      <p>
-        Cargando Pokémon...
-      </p>
+      <div id="results">
 
-    </div>
+        <p>
+          Cargando Pokémon...
+        </p>
 
+      </div>
 
-    <!-- PAGINACIÓN -->
+      <div id="pagination"></div>
 
-    <div id="pagination"></div>
-
-
-    <!-- DETALLES -->
-
-    <div id="details"></div>
+    </section>
 
 
-    <!-- COLECCIONES -->
+    <!-- ======================================================
+         DETALLES
+    ======================================================= -->
+
+    <section id="details"></section>
+
+
+    <!-- ======================================================
+         COLECCIONES
+    ======================================================= -->
 
     <section class="collections-section">
 
       <h2>
         Mis colecciones
       </h2>
+
 
       <div class="collection-form">
 
@@ -736,6 +1045,7 @@
 
       </div>
 
+
       <div id="collections">
 
         <p>
@@ -747,9 +1057,9 @@
     </section>
 
 
-    <!-- ==============================
+    <!-- ======================================================
          AI TOOLS
-    ============================== -->
+    ======================================================= -->
 
     <section class="ai-tools">
 
@@ -758,13 +1068,16 @@
       </h2>
 
 
-      <!-- SEARCH POKEMON -->
+      <!-- ====================================================
+           SEARCH POKÉMON
+      ===================================================== -->
 
       <div class="tool-card">
 
         <h3>
           🔍 Search Pokémon
         </h3>
+
 
         <div class="tool-form">
 
@@ -819,13 +1132,16 @@
       </div>
 
 
-      <!-- POKEMON DETAILS -->
+      <!-- ====================================================
+           POKÉMON DETAILS
+      ===================================================== -->
 
       <div class="tool-card">
 
         <h3>
           📋 Pokémon Details
         </h3>
+
 
         <div class="tool-form">
 
@@ -880,13 +1196,16 @@
       </div>
 
 
-      <!-- COMPARE POKEMON -->
+      <!-- ====================================================
+           COMPARE POKÉMON
+      ===================================================== -->
 
       <div class="tool-card">
 
         <h3>
           ⚔️ Compare Pokémon
         </h3>
+
 
         <div class="tool-form">
 
@@ -948,15 +1267,88 @@
 
     </section>
 
+
+    <!-- ======================================================
+         ELEVENLABS
+    ======================================================= -->
+
+    <section
+      class="elevenlabs-section"
+      id="elevenLabsCall"
+    >
+
+      <div class="elevenlabs-header">
+
+        <div class="elevenlabs-icon">
+          📞
+        </div>
+
+        <div>
+
+          <h2>
+            Llamada de prueba
+          </h2>
+
+          <p>
+            Realiza una llamada de prueba mediante ElevenLabs SIP.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="call-test-form">
+
+        <label for="testPhoneNumber">
+          Número de destino
+        </label>
+
+
+        <div class="call-input-row">
+
+          <input
+            type="tel"
+            id="testPhoneNumber"
+            placeholder="+573001234567"
+          >
+
+
+          <button
+            type="button"
+            id="testCallButton"
+            class="tool-button"
+          >
+            📞 Realizar llamada
+          </button>
+
+        </div>
+
+
+        <div
+          id="testCallStatus"
+          class="call-test-status"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+    </section>
+
+
   </div>
 
 
-  <!-- TypeScript compilado -->
+  <!-- ========================================================
+       TYPESCRIPT COMPILADO
+  ========================================================= -->
 
   <script
     type="module"
     src="./dist/components/main.js"
   ></script>
 
+
 </body>
+
 </html>
