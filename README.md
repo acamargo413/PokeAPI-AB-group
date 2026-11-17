@@ -70,6 +70,108 @@ Las consultas y operaciones sobre colecciones y favoritos validan la organizaci�
 
 ---
 
+# Herramientas para un agente IA
+
+El proyecto expone tres herramientas preparadas para ser utilizadas por un agente de IA:
+
+- `search_pokemon`
+- `get_pokemon_details`
+- `compare_pokemon`
+
+Cada herramienta:
+
+- Valida sus parámetros.
+- Devuelve respuestas en formato JSON estructurado.
+- Maneja errores.
+- Puede ejecutarse mediante un simulador de llamadas.
+- Puede ser utilizada mediante los endpoints de herramientas.
+
+### search_pokemon
+
+Permite buscar un Pokémon por nombre.
+
+Ejemplo de parámetros:
+
+```json
+{
+  "name": "pikachu"
+}
+```
+
+Endpoint:
+
+```text
+POST /api/tools/search
+```
+
+---
+
+### get_pokemon_details
+
+Permite obtener la información completa de un Pokémon utilizando su nombre o ID.
+
+Ejemplo:
+
+```json
+{
+  "id": 25
+}
+```
+
+Endpoint:
+
+```text
+POST /api/tools/details
+```
+
+---
+
+### compare_pokemon
+
+Permite comparar dos Pokémon diferentes.
+
+Ejemplo:
+
+```json
+{
+  "pokemon1": "pikachu",
+  "pokemon2": "charizard"
+}
+```
+
+Endpoint:
+
+```text
+POST /api/tools/compare
+```
+
+La respuesta contiene información de ambos Pokémon, incluyendo:
+
+- ID.
+- Nombre.
+- Tipos.
+- Estadísticas.
+
+### Simulador de herramientas
+
+Las herramientas pueden probarse mediante:
+
+```text
+src/tools/tool-simulator.ts
+```
+
+El simulador ejecuta ejemplos de:
+
+```text
+search_pokemon
+get_pokemon_details
+compare_pokemon
+```
+
+y muestra las respuestas estructuradas en JSON.
+
+---
+
 # Pruebas automatizadas
 
 El proyecto implementa tres tipos de pruebas:
@@ -98,6 +200,21 @@ Archivo:
 ```text
 tests/unit/pokemon.service.test.ts
 ```
+
+Las herramientas del agente IA también cuentan con pruebas unitarias:
+
+```text
+tests/unit/tools.test.ts
+```
+
+Estas pruebas verifican:
+
+- Validación de parámetros.
+- Búsqueda correcta.
+- Consulta de detalles.
+- Comparación de Pokémon.
+- Manejo de Pokémon repetidos.
+- Respuestas estructuradas.
 
 ---
 
@@ -279,19 +396,27 @@ pokemon-api/
 │   ├── routes/
 │   │   ├── pokemon.routes.ts
 │   │   ├── collection.routes.ts
-│   │   └── favorite.routes.ts
+│   │   ├── favorite.routes.ts
+│   │   └── tools.routes.ts
 │   │
 │   ├── services/
 │   │   ├── pokemon.service.ts
 │   │   ├── collection.service.ts
 │   │   └── favorite.service.ts
 │   │
+│   ├── tools/
+│   │   ├── search-pokemon.tool.ts
+│   │   ├── get-pokemon-details.tool.ts
+│   │   ├── compare-pokemon.tool.ts
+│   │   └── tool-simulator.ts
+│   │
 │   ├── app.ts
 │   └── server.ts
 │
 ├── tests/
 │   ├── unit/
-│   │   └── pokemon.service.test.ts
+│   │   ├── pokemon.service.test.ts
+│   │   └── tools.test.ts
 │   │
 │   ├── integration/
 │   │   └── pokemon.routes.test.ts
@@ -322,11 +447,15 @@ Ejemplo:
 GET /api/pokemon/25
 ```
 
+---
+
 ## Listar Pokémon
 
 ```text
 GET /api/pokemon
 ```
+
+---
 
 ## Buscar Pokémon
 
@@ -334,11 +463,15 @@ GET /api/pokemon
 GET /api/pokemon/search?name=pikachu
 ```
 
+---
+
 ## Filtrar por tipo
 
 ```text
 GET /api/pokemon?page=1&limit=20&type=electric
 ```
+
+---
 
 ## Colecciones
 
@@ -349,12 +482,61 @@ PUT    /api/collections/:id
 DELETE /api/collections/:id?organizationId=1
 ```
 
+---
+
 ## Favoritos
 
 ```text
 POST   /api/collections/:collectionId/favorites
 GET    /api/collections/:collectionId/favorites?organizationId=1
 DELETE /api/collections/:collectionId/favorites/:pokemonId?organizationId=1
+```
+
+---
+
+## Herramientas IA
+
+### Buscar Pokémon
+
+```text
+POST /api/tools/search
+```
+
+Body:
+
+```json
+{
+  "name": "pikachu"
+}
+```
+
+### Obtener detalles
+
+```text
+POST /api/tools/details
+```
+
+Body:
+
+```json
+{
+  "id": 25
+}
+```
+
+### Comparar Pokémon
+
+```text
+POST /api/tools/compare
+```
+
+Body:
+
+```json
+{
+  "pokemon1": "pikachu",
+  "pokemon2": "charizard"
+}
 ```
 
 ---
@@ -377,3 +559,5 @@ De esta forma, las pruebas pueden ejecutarse de manera controlada y reproducible
 # Autor
 
 Proyecto desarrollado como ejercicio técnico utilizando TypeScript, Node.js, Express, PostgreSQL y PokéAPI.
+
+**Andrés Camargo**
