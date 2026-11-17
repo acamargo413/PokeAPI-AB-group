@@ -538,7 +538,59 @@ Body:
   "pokemon2": "charizard"
 }
 ```
+# Integración con ElevenLabs
 
+El proyecto incluye una integración con **ElevenLabs** para realizar llamadas telefónicas de prueba desde la aplicación.
+
+La integración permite ejecutar una llamada directamente desde el frontend mediante un botón.
+
+## Funcionamiento
+
+El flujo de la llamada es:
+
+```text
+Frontend
+   ↓
+Backend Node.js / Express
+   ↓
+API de ElevenLabs
+   ↓
+Llamada telefónica
+```
+
+Desde la aplicación se ingresa el número de destino y se presiona el botón:
+
+```text
+Realizar llamada
+```
+
+El backend procesa la solicitud y utiliza la API de ElevenLabs para iniciar la llamada.
+
+## Prueba
+
+La integración fue probada realizando una llamada real de prueba hacia un número telefónico configurado.
+
+La llamada fue recibida correctamente.
+
+## Configuración
+
+Las credenciales de ElevenLabs deben mantenerse únicamente en el backend y no deben exponerse directamente en el frontend.
+
+Las variables utilizadas para la integración deben configurarse mediante variables de entorno.
+
+> Las credenciales reales de ElevenLabs no deben almacenarse directamente en el repositorio.
+
+## Documentación estudiada
+
+Durante el desarrollo se revisó la documentación de:
+
+- ElevenLabs API.
+- Integración de llamadas.
+- Configuración de agentes.
+- Parámetros necesarios para realizar llamadas de prueba.
+- NextVoice / NexterVoice.
+
+La integración con ElevenLabs se realizó utilizando el endpoint correspondiente para llamadas de prueba.
 ---
 
 # Mock de PokéAPI
