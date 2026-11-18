@@ -565,7 +565,6 @@
       background: white;
 
       border: 1px solid #ddd;
-
       border-radius: 10px;
     }
 
@@ -1298,6 +1297,108 @@
       </div>
 
 
+      <!-- ====================================================
+           PROMPT PERMANENTE
+      ===================================================== -->
+
+      <div class="call-test-form">
+
+        <label for="permanentPrompt">
+          Prompt permanente
+        </label>
+
+        <textarea
+          id="permanentPrompt"
+          rows="5"
+          placeholder="Escribe aquí el prompt permanente del agente..."
+          style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; resize:vertical;"
+        ></textarea>
+
+        <div
+          class="call-input-row"
+          style="margin-top:10px;"
+        >
+
+          <button
+            type="button"
+            id="loadPermanentPromptButton"
+            class="tool-button"
+          >
+            Cargar prompt
+          </button>
+
+          <button
+            type="button"
+            id="savePermanentPromptButton"
+            class="tool-button"
+          >
+            Guardar prompt
+          </button>
+
+        </div>
+
+        <div
+          id="permanentPromptStatus"
+          class="call-test-status"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+
+      <!-- ====================================================
+           MENSAJE INICIAL PERMANENTE
+      ===================================================== -->
+
+      <div class="call-test-form">
+
+        <label for="permanentFirstMessage">
+          Mensaje inicial permanente
+        </label>
+
+        <textarea
+          id="permanentFirstMessage"
+          rows="4"
+          placeholder="Escribe aquí el mensaje inicial permanente..."
+          style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; resize:vertical;"
+        ></textarea>
+
+        <div
+          class="call-input-row"
+          style="margin-top:10px;"
+        >
+
+          <button
+            type="button"
+            id="loadAgentConfigurationButton"
+            class="tool-button"
+          >
+            Cargar configuración
+          </button>
+
+          <button
+            type="button"
+            id="savePermanentFirstMessageButton"
+            class="tool-button"
+          >
+            Guardar mensaje
+          </button>
+
+        </div>
+
+        <div
+          id="permanentFirstMessageStatus"
+          class="call-test-status"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+
+      <!-- ====================================================
+           NÚMERO DE DESTINO
+      ===================================================== -->
+
       <div class="call-test-form">
 
         <label for="testPhoneNumber">
@@ -1327,6 +1428,90 @@
 
         <div
           id="testCallStatus"
+          class="call-test-status"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+
+      <!-- ====================================================
+           PROMPT TEMPORAL
+      ===================================================== -->
+
+      <div class="call-test-form">
+
+        <label for="temporaryPrompt">
+          Prompt temporal
+        </label>
+
+        <textarea
+          id="temporaryPrompt"
+          rows="5"
+          placeholder="Escribe aquí un prompt temporal para esta llamada..."
+          style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; resize:vertical;"
+        ></textarea>
+
+        <div
+          class="call-input-row"
+          style="margin-top:10px;"
+        >
+
+          <button
+            type="button"
+            id="clearTemporaryPromptButton"
+            class="tool-button"
+          >
+            Limpiar prompt temporal
+          </button>
+
+        </div>
+
+        <div
+          id="temporaryPromptStatus"
+          class="call-test-status"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+
+      <!-- ====================================================
+           MENSAJE TEMPORAL
+      ===================================================== -->
+
+      <div class="call-test-form">
+
+        <label for="temporaryFirstMessage">
+          Mensaje temporal
+        </label>
+
+        <textarea
+          id="temporaryFirstMessage"
+          rows="4"
+          placeholder="Escribe aquí el mensaje inicial temporal..."
+          style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; font-size:14px; resize:vertical;"
+        ></textarea>
+
+
+        <div
+          class="call-input-row"
+          style="margin-top:10px;"
+        >
+
+          <button
+            type="button"
+            id="temporaryCallButton"
+            class="tool-button"
+          >
+            📞 Realizar llamada temporal
+          </button>
+
+        </div>
+
+
+        <div
+          id="temporaryPromptStatus"
           class="call-test-status"
           aria-live="polite"
         ></div>

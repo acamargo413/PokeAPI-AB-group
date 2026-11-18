@@ -2748,54 +2748,540 @@ cargarColecciones();
 ).mostrarDetalles =
   mostrarDetalles;
 
-// ==========================================================
-// ELEVENLABS - LLAMADA DE PRUEBA
-// ==========================================================
+// ============================================================
+// ELEVENLABS - ELEMENTOS
+// ============================================================
 
-const configurarLlamadaElevenLabs = () => {
+const testPhoneNumber =
+  document.getElementById(
+    "testPhoneNumber"
+  ) as HTMLInputElement | null;
 
-  const button =
-    document.getElementById(
-      "testCallButton"
-    ) as HTMLButtonElement | null;
+const testCallButton =
+  document.getElementById(
+    "testCallButton"
+  ) as HTMLButtonElement | null;
 
-  const phoneInput =
-    document.getElementById(
-      "testPhoneNumber"
-    ) as HTMLInputElement | null;
+const testCallStatus =
+  document.getElementById(
+    "testCallStatus"
+  ) as HTMLDivElement | null;
 
-  const status =
-    document.getElementById(
-      "testCallStatus"
-    ) as HTMLDivElement | null;
+const permanentPrompt =
+  document.getElementById(
+    "permanentPrompt"
+  ) as HTMLTextAreaElement | null;
 
-  if (!button || !phoneInput || !status) {
+const loadPermanentPromptButton =
+  document.getElementById(
+    "loadPermanentPromptButton"
+  ) as HTMLButtonElement | null;
+
+const savePermanentPromptButton =
+  document.getElementById(
+    "savePermanentPromptButton"
+  ) as HTMLButtonElement | null;
+
+const permanentPromptStatus =
+  document.getElementById(
+    "permanentPromptStatus"
+  ) as HTMLDivElement | null;
+
+const permanentFirstMessage =
+  document.getElementById(
+    "permanentFirstMessage"
+  ) as HTMLTextAreaElement | null;
+
+const loadAgentConfigurationButton =
+  document.getElementById(
+    "loadAgentConfigurationButton"
+  ) as HTMLButtonElement | null;
+
+const savePermanentFirstMessageButton =
+  document.getElementById(
+    "savePermanentFirstMessageButton"
+  ) as HTMLButtonElement | null;
+
+const permanentFirstMessageStatus =
+  document.getElementById(
+    "permanentFirstMessageStatus"
+  ) as HTMLDivElement | null;
+
+const temporaryPrompt =
+  document.getElementById(
+    "temporaryPrompt"
+  ) as HTMLTextAreaElement | null;
+
+const temporaryFirstMessage =
+  document.getElementById(
+    "temporaryFirstMessage"
+  ) as HTMLTextAreaElement | null;
+
+const clearTemporaryPromptButton =
+  document.getElementById(
+    "clearTemporaryPromptButton"
+  ) as HTMLButtonElement | null;
+
+const temporaryCallButton =
+  document.getElementById(
+    "temporaryCallButton"
+  ) as HTMLButtonElement | null;
+
+const temporaryPromptStatus =
+  document.getElementById(
+    "temporaryPromptStatus"
+  ) as HTMLDivElement | null;
+
+
+// ============================================================
+// UTILIDADES ELEVENLABS
+// ============================================================
+
+function mostrarEstadoElevenLabs(
+  elemento: HTMLElement | null,
+  mensaje: string,
+  tipo: "normal" | "loading" | "success" | "error"
+): void {
+
+  if (!elemento) {
     return;
   }
 
-  button.addEventListener("click", async () => {
+  elemento.className =
+    `call-test-status ${tipo}`;
 
-    const toNumber =
-      phoneInput.value.trim();
+  elemento.textContent =
+    mensaje;
+}
 
-    if (!toNumber) {
 
-      status.className =
-        "call-test-status error";
+function obtenerMensajeErrorElevenLabs(
+  error: unknown
+): string {
 
-      status.textContent =
-        "Debes ingresar un número de destino.";
+  return error instanceof Error
+    ? error.message
+    : "Ocurrió un error desconocido.";
+}
+
+
+function mostrarResultadoLlamada(
+  elemento: HTMLElement | null,
+  mensaje: string,
+  conversationId?: string,
+  sipCallId?: string
+): void {
+
+  if (!elemento) {
+    return;
+  }
+
+  elemento.className =
+    "call-test-status success";
+
+  elemento.innerHTML = `
+    <strong>
+      ${mensaje}
+    </strong>
+
+    ${
+      conversationId
+        ? `
+          <br>
+          <small>
+            Conversation ID: ${conversationId}
+          </small>
+        `
+        : ""
+    }
+
+    ${
+      sipCallId
+        ? `
+          <br>
+          <small>
+            SIP Call ID: ${sipCallId}
+          </small>
+        `
+        : ""
+    }
+  `;
+}
+
+
+interface ElevenLabsResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  data?: {
+    conversation_id?: string;
+    sip_call_id?: string;
+  };
+  conversation_id?: string;
+  sip_call_id?: string;
+}
+
+
+// ============================================================
+// ELEVENLABS - CARGAR PROMPT PERMANENTE
+// ============================================================
+
+const cargarPromptPermanente =
+  async (): Promise<void> => {
+
+    if (!permanentPrompt) {
+      return;
+    }
+
+    mostrarEstadoElevenLabs(
+      permanentPromptStatus,
+      "Cargando prompt desde ElevenLabs...",
+      "loading"
+    );
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/elevenlabs/prompt"
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          data.error ||
+          "No se pudo cargar el prompt."
+        );
+      }
+
+      const prompt =
+        typeof data === "string"
+          ? data
+          : data.prompt ||
+            data.data?.prompt ||
+            "";
+
+      if (!prompt) {
+
+        throw new Error(
+          "ElevenLabs no devolvió ningún prompt."
+        );
+      }
+
+      permanentPrompt.value =
+        prompt;
+
+      mostrarEstadoElevenLabs(
+        permanentPromptStatus,
+        "Prompt cargado correctamente.",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error cargando prompt de ElevenLabs:",
+        error
+      );
+
+      mostrarEstadoElevenLabs(
+        permanentPromptStatus,
+        `❌ ${obtenerMensajeErrorElevenLabs(error)}`,
+        "error"
+      );
+    }
+  };
+
+
+// ============================================================
+// ELEVENLABS - GUARDAR PROMPT PERMANENTE
+// ============================================================
+
+const guardarPromptPermanente =
+  async (): Promise<void> => {
+
+    if (!permanentPrompt) {
+      return;
+    }
+
+    const prompt =
+      permanentPrompt.value.trim();
+
+    if (!prompt) {
+
+      mostrarEstadoElevenLabs(
+        permanentPromptStatus,
+        "El prompt no puede estar vacío.",
+        "error"
+      );
 
       return;
     }
 
-    button.disabled = true;
+    mostrarEstadoElevenLabs(
+      permanentPromptStatus,
+      "Guardando prompt...",
+      "loading"
+    );
 
-    status.className =
-      "call-test-status loading";
+    try {
 
-    status.textContent =
-      "📞 Iniciando llamada de prueba...";
+      const response =
+        await fetch(
+          "/api/elevenlabs/prompt",
+          {
+            method: "PATCH",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              prompt
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          data.error ||
+          JSON.stringify(data)
+        );
+      }
+
+      mostrarEstadoElevenLabs(
+        permanentPromptStatus,
+        "Prompt permanente actualizado correctamente.",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error guardando prompt de ElevenLabs:",
+        error
+      );
+
+      mostrarEstadoElevenLabs(
+        permanentPromptStatus,
+        `❌ Error al guardar: ${obtenerMensajeErrorElevenLabs(error)}`,
+        "error"
+      );
+    }
+  };
+
+
+// ============================================================
+// ELEVENLABS - CARGAR MENSAJE INICIAL PERMANENTE
+// ============================================================
+
+const cargarMensajeInicialPermanente =
+  async (): Promise<void> => {
+
+    if (!permanentFirstMessage) {
+      return;
+    }
+
+    mostrarEstadoElevenLabs(
+      permanentFirstMessageStatus,
+      "Cargando configuración del agente...",
+      "loading"
+    );
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/elevenlabs/prompt"
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          data.error ||
+          "No se pudo cargar la configuración."
+        );
+      }
+
+      const firstMessage =
+        data.first_message ||
+        data.firstMessage ||
+        data.conversation_config?.agent?.first_message ||
+        data.conversation_config?.agent?.firstMessage ||
+        data.data?.first_message ||
+        data.data?.firstMessage ||
+        data.data?.conversation_config?.agent?.first_message ||
+        data.data?.conversation_config?.agent?.firstMessage ||
+        "";
+
+      if (!firstMessage) {
+
+        mostrarEstadoElevenLabs(
+          permanentFirstMessageStatus,
+          "⚠️ El backend actual no devuelve todavía el mensaje inicial.",
+          "normal"
+        );
+
+        return;
+      }
+
+      permanentFirstMessage.value =
+        firstMessage;
+
+      mostrarEstadoElevenLabs(
+        permanentFirstMessageStatus,
+        "Mensaje inicial cargado correctamente.",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error cargando mensaje inicial:",
+        error
+      );
+
+      mostrarEstadoElevenLabs(
+        permanentFirstMessageStatus,
+        `❌ ${obtenerMensajeErrorElevenLabs(error)}`,
+        "error"
+      );
+    }
+  };
+
+
+// ============================================================
+// ELEVENLABS - GUARDAR MENSAJE INICIAL PERMANENTE
+// ============================================================
+
+const guardarMensajeInicialPermanente =
+  async (): Promise<void> => {
+
+    if (!permanentFirstMessage) {
+      return;
+    }
+
+    const firstMessage =
+      permanentFirstMessage.value.trim();
+
+    if (!firstMessage) {
+
+      mostrarEstadoElevenLabs(
+        permanentFirstMessageStatus,
+        "El mensaje inicial no puede estar vacío.",
+        "error"
+      );
+
+      return;
+    }
+
+    mostrarEstadoElevenLabs(
+      permanentFirstMessageStatus,
+      "Guardando mensaje inicial...",
+      "loading"
+    );
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/elevenlabs/first-message",
+          {
+            method: "PATCH",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              firstMessage
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          data.error ||
+          JSON.stringify(data)
+        );
+      }
+
+      mostrarEstadoElevenLabs(
+        permanentFirstMessageStatus,
+        "Mensaje inicial actualizado correctamente.",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error guardando mensaje inicial:",
+        error
+      );
+
+      mostrarEstadoElevenLabs(
+        permanentFirstMessageStatus,
+        `❌ Error al guardar: ${obtenerMensajeErrorElevenLabs(error)}`,
+        "error"
+      );
+    }
+  };
+
+
+// ============================================================
+// ELEVENLABS - LLAMADA NORMAL
+// ============================================================
+
+const realizarLlamadaElevenLabs =
+  async (): Promise<void> => {
+
+    if (!testPhoneNumber) {
+      return;
+    }
+
+    const toNumber =
+      testPhoneNumber.value.trim();
+
+    if (!toNumber) {
+
+      mostrarEstadoElevenLabs(
+        testCallStatus,
+        "Debes ingresar un número de destino.",
+        "error"
+      );
+
+      return;
+    }
+
+    mostrarEstadoElevenLabs(
+      testCallStatus,
+      "📞 Iniciando llamada...",
+      "loading"
+    );
+
+    if (testCallButton) {
+      testCallButton.disabled = true;
+    }
 
     try {
 
@@ -2816,7 +3302,8 @@ const configurarLlamadaElevenLabs = () => {
           }
         );
 
-      const result =
+      const result:
+        ElevenLabsResponse =
         await response.json();
 
       if (!response.ok ||
@@ -2825,34 +3312,24 @@ const configurarLlamadaElevenLabs = () => {
         throw new Error(
           result.error ||
           result.message ||
-          "No se pudo iniciar la llamada"
+          "No se pudo iniciar la llamada."
         );
       }
 
       const conversationId =
-        result.data?.conversation_id;
+        result.data?.conversation_id ||
+        result.conversation_id;
 
       const sipCallId =
-        result.data?.sip_call_id;
+        result.data?.sip_call_id ||
+        result.sip_call_id;
 
-      status.className =
-        "call-test-status success";
-
-      status.innerHTML = `
-        <strong>✅ Llamada iniciada correctamente</strong>
-        <br>
-        La llamada fue enviada al número indicado.
-        ${
-          conversationId
-            ? `<br><small>Conversation ID: ${conversationId}</small>`
-            : ""
-        }
-        ${
-          sipCallId
-            ? `<br><small>SIP Call ID: ${sipCallId}</small>`
-            : ""
-        }
-      `;
+      mostrarResultadoLlamada(
+        testCallStatus,
+        "✅ Llamada iniciada correctamente.",
+        conversationId,
+        sipCallId
+      );
 
     } catch (error) {
 
@@ -2861,21 +3338,249 @@ const configurarLlamadaElevenLabs = () => {
         error
       );
 
-      status.className =
-        "call-test-status error";
-
-      status.textContent =
-        error instanceof Error
-          ? `❌ ${error.message}`
-          : "❌ No se pudo iniciar la llamada.";
+      mostrarEstadoElevenLabs(
+        testCallStatus,
+        `❌ ${obtenerMensajeErrorElevenLabs(error)}`,
+        "error"
+      );
 
     } finally {
 
-      button.disabled = false;
+      if (testCallButton) {
+        testCallButton.disabled = false;
+      }
     }
-  });
-};
+  };
 
 
-// Inicializar llamada de prueba
-configurarLlamadaElevenLabs();
+// ============================================================
+// ELEVENLABS - LLAMADA PERSONALIZADA
+// ============================================================
+
+const realizarLlamadaPersonalizadaElevenLabs =
+  async (): Promise<void> => {
+
+    if (
+      !testPhoneNumber ||
+      !temporaryPrompt ||
+      !temporaryFirstMessage
+    ) {
+      return;
+    }
+
+    const toNumber =
+      testPhoneNumber.value.trim();
+
+    const customPrompt =
+      temporaryPrompt.value.trim();
+
+    const customFirstMessage =
+      temporaryFirstMessage.value.trim();
+
+    if (!toNumber) {
+
+      mostrarEstadoElevenLabs(
+        temporaryPromptStatus,
+        "Primero ingresa el número de destino.",
+        "error"
+      );
+
+      return;
+    }
+
+    if (!customPrompt) {
+
+      mostrarEstadoElevenLabs(
+        temporaryPromptStatus,
+        "Escribe un prompt temporal.",
+        "error"
+      );
+
+      return;
+    }
+
+    if (!customFirstMessage) {
+
+      mostrarEstadoElevenLabs(
+        temporaryPromptStatus,
+        "Escribe el mensaje temporal.",
+        "error"
+      );
+
+      return;
+    }
+
+    mostrarEstadoElevenLabs(
+      temporaryPromptStatus,
+      "📞 Iniciando llamada personalizada...",
+      "loading"
+    );
+
+    if (temporaryCallButton) {
+      temporaryCallButton.disabled = true;
+    }
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/elevenlabs/test-call",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              toNumber,
+              temporaryPrompt:
+                customPrompt,
+              temporaryFirstMessage:
+                customFirstMessage
+            })
+          }
+        );
+
+      const result:
+        ElevenLabsResponse =
+        await response.json();
+
+      if (!response.ok ||
+          !result.success) {
+
+        throw new Error(
+          result.error ||
+          result.message ||
+          "No se pudo iniciar la llamada personalizada."
+        );
+      }
+
+      const conversationId =
+        result.data?.conversation_id ||
+        result.conversation_id;
+
+      const sipCallId =
+        result.data?.sip_call_id ||
+        result.sip_call_id;
+
+      mostrarResultadoLlamada(
+        temporaryPromptStatus,
+        "✅ Llamada personalizada iniciada correctamente.",
+        conversationId,
+        sipCallId
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error en llamada personalizada ElevenLabs:",
+        error
+      );
+
+      mostrarEstadoElevenLabs(
+        temporaryPromptStatus,
+        `❌ ${obtenerMensajeErrorElevenLabs(error)}`,
+        "error"
+      );
+
+    } finally {
+
+      if (temporaryCallButton) {
+        temporaryCallButton.disabled = false;
+      }
+    }
+  };
+
+
+// ============================================================
+// ELEVENLABS - LIMPIAR TEMPORALES
+// ============================================================
+
+const limpiarCamposTemporales =
+  (): void => {
+
+    if (temporaryPrompt) {
+      temporaryPrompt.value = "";
+    }
+
+    if (temporaryFirstMessage) {
+      temporaryFirstMessage.value = "";
+    }
+
+    mostrarEstadoElevenLabs(
+      temporaryPromptStatus,
+      "Campos temporales limpiados.",
+      "normal"
+    );
+  };
+
+
+// ============================================================
+// ELEVENLABS - EVENTOS
+// ============================================================
+
+if (testCallButton) {
+
+  testCallButton.addEventListener(
+    "click",
+    realizarLlamadaElevenLabs
+  );
+}
+
+if (loadPermanentPromptButton) {
+
+  loadPermanentPromptButton.addEventListener(
+    "click",
+    cargarPromptPermanente
+  );
+}
+
+if (savePermanentPromptButton) {
+
+  savePermanentPromptButton.addEventListener(
+    "click",
+    guardarPromptPermanente
+  );
+}
+
+if (loadAgentConfigurationButton) {
+
+  loadAgentConfigurationButton.addEventListener(
+    "click",
+    cargarMensajeInicialPermanente
+  );
+}
+
+if (savePermanentFirstMessageButton) {
+
+  savePermanentFirstMessageButton.addEventListener(
+    "click",
+    guardarMensajeInicialPermanente
+  );
+}
+
+if (temporaryCallButton) {
+
+  temporaryCallButton.addEventListener(
+    "click",
+    realizarLlamadaPersonalizadaElevenLabs
+  );
+}
+
+if (clearTemporaryPromptButton) {
+
+  clearTemporaryPromptButton.addEventListener(
+    "click",
+    limpiarCamposTemporales
+  );
+}
+
+
+// ============================================================
+// INICIALIZACION ELEVENLABS
+// ============================================================
+
+// No ejecutamos llamadas automáticamente.
+// El usuario decide cuándo llamar desde la interfaz.
