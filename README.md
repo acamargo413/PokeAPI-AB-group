@@ -19,7 +19,7 @@ El proyecto incluye un frontend web para consultar Pokémon, buscar por nombre, 
 - PokéAPI
 
 - Vitest
-
+- pnpm
 - Supertest
 
 - JSDOM
@@ -364,7 +364,7 @@ Para ejecutar todas las pruebas:
 
 ```bash
 
-npm test
+pnpm test
 
 ```
 
@@ -372,7 +372,7 @@ Para ejecutar Vitest en modo watch:
 
 ```bash
 
-npm run test:watch
+pnpm run test:watch
 
 ```
 
@@ -402,7 +402,7 @@ Instalar dependencias:
 
 ```bash
 
-npm install
+pnpm install
 
 ```
 
@@ -450,7 +450,7 @@ Para iniciar el proyecto:
 
 ```bash
 
-npm run dev
+pnpm run dev
 
 ```
 
@@ -468,7 +468,7 @@ http://localhost:3000
 
 ```bash
 
-npm run build
+pnpm run build
 
 ```
 
@@ -484,7 +484,7 @@ Para iniciar la versión compilada:
 
 ```bash
 
-npm start
+pnpm start
 
 ```
 
@@ -853,8 +853,66 @@ La integración con ElevenLabs se realizó utilizando el endpoint correspondient
 
 ---
 
-# Mock de PokéAPI
+**# RAG y consulta de información en tiempo real
 
+El proyecto incorpora una capa de RAG (Retrieval-Augmented Generation) conectada directamente con las herramientas de la API de Pokémon. En lugar de almacenar todos los datos de PokéAPI en una base vectorial, el sistema recupera la información actual desde la API y construye un contexto estructurado para el agente.
+Flujo del RAG
+Consulta del usuario
+        ↓
+/api/rag/query
+        ↓
+RAG Service
+        ↓
+/api/tools/details
+        ↓
+PokéAPI
+        ↓
+Contexto estructurado
+Endpoint:
+POST /api/rag/query
+Ejemplo de solicitud:
+{
+  "consulta": "charizard"
+}
+La respuesta incluye información como:
+- Nombre e ID.
+- Tipos.
+- Habilidades.
+- Estadísticas.
+- Evolución.
+Archivo principal:
+src/rag/rag.service.ts
+Ruta:
+src/rag/rag.routes.ts
+Acceso público mediante Cloudflare Tunnel
+Para realizar pruebas de integración en tiempo real, la API local se expone temporalmente mediante Cloudflare Tunnel.
+cloudflared tunnel --url http://localhost:3000
+Esto permite acceder temporalmente a rutas como:
+https://<url-generada>.trycloudflare.com/api/rag/query
+La ruta RAG fue probada tanto localmente como desde Internet y respondió correctamente con información real de Pokémon.
+La URL generada por Cloudflare Tunnel es temporal y puede cambiar cada vez que se inicia un nuevo túnel.
+
+Integración preparada con ElevenLabs
+El proyecto también cuenta con integración de ElevenLabs para realizar llamadas telefónicas desde la aplicación. La arquitectura queda preparada para que, durante una llamada, el agente pueda consultar información mediante herramientas HTTP y utilizar la respuesta como contexto para generar su respuesta hablada.
+
+Flujo previsto:
+Llamada telefónica
+        ↓
+ElevenLabs Agent
+        ↓
+Herramienta / Webhook
+        ↓
+/api/rag/query
+        ↓
+RAG + API Pokémon
+        ↓
+Información recuperada
+        ↓
+Respuesta del agente
+        ↓
+Voz durante la llamada
+La conexión final de la herramienta RAG dentro del agente de ElevenLabs queda pendiente de configurar desde el panel de ElevenLabs cuando se disponga de acceso.
+Mock de PokéAPI**
 Las pruebas automatizadas utilizan mocks para simular las respuestas de PokéAPI.
 
 Esto permite ejecutar las pruebas sin depender de:
