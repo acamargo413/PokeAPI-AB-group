@@ -1,36 +1,29 @@
 # Pokémon API
 
-API REST desarrollada en **TypeScript + Node.js + Express**, integrada con **PokéAPI** y **PostgreSQL**.
+API REST desarrollada con **TypeScript + Node.js + Express**, integrada con **PokéAPI** y **PostgreSQL**.
 
 El proyecto incluye un frontend web para consultar Pokémon, buscar por nombre, filtrar por tipo, visualizar estadísticas, habilidades y evoluciones, además de gestionar colecciones y Pokémon favoritos.
+
+También incorpora herramientas para agentes de IA, un sistema RAG para consultar información actual de Pokémon y una integración con ElevenLabs para realizar consultas mediante llamadas telefónicas.
 
 ---
 
 ## Tecnologías utilizadas
 
 - TypeScript
-
 - Node.js
-
 - Express
-
 - PostgreSQL
-
 - PokéAPI
-
 - Vitest
-- pnpm
 - Supertest
-
 - JSDOM
-
 - HTML
-
 - CSS
-
-- JavaScript/TypeScript
-
+- JavaScript / TypeScript
+- ElevenLabs
 - Git y GitHub
+- pnpm
 
 ---
 
@@ -39,41 +32,27 @@ El proyecto incluye un frontend web para consultar Pokémon, buscar por nombre, 
 ### Pokémon
 
 - Listado de Pokémon.
-
 - Paginación.
-
 - Búsqueda por nombre.
-
 - Filtro por tipo.
-
 - Consulta de detalles.
-
 - Estadísticas base.
-
 - Habilidades.
-
 - Imagen.
-
 - Cadena de evolución.
 
 ### Colecciones
 
 - Crear colecciones.
-
 - Consultar colecciones.
-
 - Actualizar colecciones.
-
 - Eliminar colecciones.
-
 - Asociar Pokémon favoritos a colecciones.
 
 ### Favoritos
 
 - Agregar Pokémon a una colección.
-
 - Consultar favoritos.
-
 - Eliminar favoritos.
 
 ### Seguridad multiempresa
@@ -83,11 +62,8 @@ El sistema implementa separación de información mediante organizaciones.
 Se crearon organizaciones ficticias para realizar las pruebas:
 
 - Organización Alpha
-
 - Organización Beta
-
 - ACME
-
 - POKEMON COLOMBIA
 
 Cada colección pertenece a una organización mediante `organization_id`.
@@ -103,109 +79,77 @@ Las consultas y operaciones sobre colecciones y favoritos validan la organizaci�
 El proyecto expone tres herramientas preparadas para ser utilizadas por un agente de IA:
 
 - `search_pokemon`
-
 - `get_pokemon_details`
-
 - `compare_pokemon`
 
 Cada herramienta:
 
 - Valida sus parámetros.
-
 - Devuelve respuestas en formato JSON estructurado.
-
 - Maneja errores.
-
 - Puede ejecutarse mediante un simulador de llamadas.
-
 - Puede ser utilizada mediante los endpoints de herramientas.
 
 ### search_pokemon
 
 Permite buscar un Pokémon por nombre.
 
-Ejemplo de parámetros:
-
-```json
-
-{
-
-  "name": "pikachu"
-
-}
-
-```
-
 Endpoint:
 
 ```text
-
 POST /api/tools/search
-
 ```
 
----
+Ejemplo:
+
+```json
+{
+  "name": "pikachu"
+}
+```
 
 ### get_pokemon_details
 
 Permite obtener la información completa de un Pokémon utilizando su nombre o ID.
 
-Ejemplo:
-
-```json
-
-{
-
-  "id": 25
-
-}
-
-```
-
 Endpoint:
 
 ```text
-
 POST /api/tools/details
-
 ```
 
----
+Ejemplo:
+
+```json
+{
+  "id": 25
+}
+```
 
 ### compare_pokemon
 
 Permite comparar dos Pokémon diferentes.
 
-Ejemplo:
-
-```json
-
-{
-
-  "pokemon1": "pikachu",
-
-  "pokemon2": "charizard"
-
-}
-
-```
-
 Endpoint:
 
 ```text
-
 POST /api/tools/compare
+```
 
+Ejemplo:
+
+```json
+{
+  "pokemon1": "pikachu",
+  "pokemon2": "charizard"
+}
 ```
 
 La respuesta contiene información de ambos Pokémon, incluyendo:
 
 - ID.
-
 - Nombre.
-
 - Tipos.
-
 - Estadísticas.
 
 ### Simulador de herramientas
@@ -213,24 +157,263 @@ La respuesta contiene información de ambos Pokémon, incluyendo:
 Las herramientas pueden probarse mediante:
 
 ```text
-
 src/tools/tool-simulator.ts
-
 ```
 
 El simulador ejecuta ejemplos de:
 
-```text
-
-search_pokemon
-
-get_pokemon_details
-
-compare_pokemon
-
-```
+- `search_pokemon`
+- `get_pokemon_details`
+- `compare_pokemon`
 
 y muestra las respuestas estructuradas en JSON.
+
+---
+
+# RAG de Pokémon
+
+El proyecto incorpora un sistema RAG para consultar información actual de Pokémon.
+
+El RAG actual no utiliza una base de datos vectorial ni embeddings. Su función consiste en obtener información actual mediante las herramientas internas del proyecto y construir un contexto estructurado para la consulta.
+
+### Flujo
+
+```text
+Consulta del usuario
+        ↓
+/api/rag/query
+        ↓
+buscar información del Pokémon
+        ↓
+/api/tools/details
+        ↓
+PokéAPI
+        ↓
+Construcción del contexto
+        ↓
+Respuesta RAG
+```
+
+### Endpoint RAG
+
+```text
+POST /api/rag/query
+```
+
+Ejemplo:
+
+```json
+{
+  "consulta": "pikachu"
+}
+```
+
+La respuesta contiene información estructurada como:
+
+- Nombre.
+- ID.
+- Tipos.
+- Habilidades.
+- HP.
+- Ataque.
+- Defensa.
+- Ataque especial.
+- Defensa especial.
+- Velocidad.
+- Evolución.
+
+Ejemplo de respuesta:
+
+```json
+{
+  "success": true,
+  "consulta": "pikachu",
+  "contexto": "Información del Pokémon..."
+}
+```
+
+---
+
+# Integración RAG + ElevenLabs
+
+El proyecto integra el RAG con **ElevenLabs Conversational AI**.
+
+Esto permite que el agente de voz consulte información de Pokémon durante una llamada telefónica.
+
+La herramienta utilizada en ElevenLabs se llama:
+
+```text
+buscar_pokemon
+```
+
+La herramienta utiliza un webhook que apunta al endpoint:
+
+```text
+/api/rag/query
+```
+
+## Flujo completo
+
+```text
+Llamada telefónica
+        ↓
+ElevenLabs
+        ↓
+Herramienta buscar_pokemon
+        ↓
+Webhook RAG
+        ↓
+Cloudflare Tunnel
+        ↓
+API Node.js / Express
+        ↓
+/api/rag/query
+        ↓
+/api/tools/details
+        ↓
+PokéAPI
+        ↓
+Contexto RAG
+        ↓
+ElevenLabs
+        ↓
+Respuesta por voz
+```
+
+## Prueba realizada
+
+La integración fue probada mediante una llamada telefónica real.
+
+Durante las pruebas, el agente fue capaz de responder consultas sobre:
+
+- Estadísticas de Pikachu.
+- Habilidades de Charizard.
+- Evolución de Charmander.
+
+Esto confirma la comunicación entre ElevenLabs, el webhook RAG, el backend y PokéAPI.
+
+> La URL de Cloudflare utilizada durante el desarrollo corresponde a un Quick Tunnel y puede cambiar cuando el túnel se reinicia. No debe tratarse como una URL permanente de producción.
+
+---
+
+# Integración con ElevenLabs
+
+El proyecto incluye una integración con **ElevenLabs** para realizar llamadas telefónicas desde el backend.
+
+La integración permite ejecutar una llamada desde la aplicación y enviar información temporal para personalizar el comportamiento del agente durante la llamada.
+
+## Endpoint de llamada
+
+```text
+POST /api/elevenlabs/test-call
+```
+
+El backend recibe información como:
+
+- `toNumber`
+- `temporaryPrompt`
+- `temporaryFirstMessage`
+
+Ejemplo:
+
+```json
+{
+  "toNumber": "+573001234567",
+  "temporaryPrompt": "Atiende al usuario de forma cordial.",
+  "temporaryFirstMessage": "Hola, ¿cómo estás?"
+}
+```
+
+El backend se comunica con ElevenLabs manteniendo las credenciales fuera del frontend.
+
+## Configuración
+
+Las credenciales deben mantenerse únicamente en el backend mediante variables de entorno.
+
+Variables principales utilizadas:
+
+```env
+ELEVENLABS_API_KEY=
+ELEVENLABS_AGENT_ID=
+ELEVENLABS_PHONE_NUMBER_ID=
+RAG_PUBLIC_URL=
+```
+
+> Nunca almacenar claves reales de ElevenLabs dentro del repositorio.
+
+---
+
+# API
+
+## Obtener Pokémon
+
+```text
+GET /api/pokemon/:id
+```
+
+Ejemplo:
+
+```text
+GET /api/pokemon/25
+```
+
+## Listar Pokémon
+
+```text
+GET /api/pokemon
+```
+
+## Buscar Pokémon
+
+```text
+GET /api/pokemon/search?name=pikachu
+```
+
+## Filtrar por tipo
+
+```text
+GET /api/pokemon?page=1&limit=20&type=electric
+```
+
+## Colecciones
+
+```text
+POST   /api/collections
+GET    /api/collections?organizationId=1
+PUT    /api/collections/:id
+DELETE /api/collections/:id?organizationId=1
+```
+
+## Favoritos
+
+```text
+POST   /api/collections/:collectionId/favorites
+GET    /api/collections/:collectionId/favorites?organizationId=1
+DELETE /api/collections/:collectionId/favorites/:pokemonId?organizationId=1
+```
+
+## Herramientas IA
+
+```text
+POST /api/tools/search
+POST /api/tools/details
+POST /api/tools/compare
+```
+
+## RAG
+
+```text
+POST /api/rag/query
+```
+
+## ElevenLabs
+
+```text
+POST /api/elevenlabs/test-call
+POST /api/elevenlabs/create-rag-tool
+GET  /api/elevenlabs/tools
+POST /api/elevenlabs/attach-rag-tool
+```
 
 ---
 
@@ -249,57 +432,40 @@ Se prueba el servicio de Pokémon de forma aislada.
 Actualmente se comprueba:
 
 - Transformación correcta de la respuesta de PokéAPI.
-
 - Manejo del error cuando un Pokémon no existe.
-
 - Transformación de tipos.
-
 - Transformación de habilidades.
-
 - Transformación de estadísticas.
-
 - Transformación de evoluciones.
 
-Las respuestas de PokéAPI se simulan mediante `fetch`, por lo que las pruebas no dependen del servicio real.
+Las respuestas de PokéAPI se simulan mediante `fetch`, por lo que estas pruebas no dependen del servicio real.
 
 Archivo:
 
 ```text
-
 tests/unit/pokemon.service.test.ts
-
 ```
 
 Las herramientas del agente IA también cuentan con pruebas unitarias:
 
 ```text
-
 tests/unit/tools.test.ts
-
 ```
 
 Estas pruebas verifican:
 
 - Validación de parámetros.
-
 - Búsqueda correcta.
-
 - Consulta de detalles.
-
 - Comparación de Pokémon.
-
 - Manejo de Pokémon repetidos.
-
 - Respuestas estructuradas.
-
----
 
 ## 2. Pruebas de integración
 
 Herramientas:
 
 - Vitest
-
 - Supertest
 
 Se prueba la API de Express utilizando sus rutas reales.
@@ -307,76 +473,51 @@ Se prueba la API de Express utilizando sus rutas reales.
 Actualmente se comprueba:
 
 ```text
-
 GET /api/pokemon
-
 ```
-
-La respuesta de PokéAPI también se simula para evitar depender de Internet.
 
 Archivo:
 
 ```text
-
 tests/integration/pokemon.routes.test.ts
-
 ```
-
----
 
 ## 3. Pruebas de interfaz
 
 Herramientas:
 
 - Vitest
-
 - JSDOM
 
 Se carga el `index.html` dentro de un DOM simulado y se comprueba que existan los principales elementos de la interfaz:
 
 - Buscador.
-
 - Filtro por tipo.
-
 - Botón de búsqueda.
-
 - Lista de resultados.
-
 - Paginación.
-
 - Panel de detalles.
-
 - Sección de colecciones.
 
 Archivo:
 
 ```text
-
 tests/interface/main.test.ts
-
 ```
-
----
 
 ## Ejecutar las pruebas
 
 Para ejecutar todas las pruebas:
 
 ```bash
-
 pnpm test
-
 ```
 
 Para ejecutar Vitest en modo watch:
 
 ```bash
-
 pnpm run test:watch
-
 ```
-
-El proyecto debe mostrar todas las pruebas exitosas antes de realizar una entrega.
 
 ---
 
@@ -385,25 +526,19 @@ El proyecto debe mostrar todas las pruebas exitosas antes de realizar una entreg
 Clonar el repositorio:
 
 ```bash
-
 git clone https://github.com/acmargo413/PokeAPI-AB-group.git
-
 ```
 
 Entrar al proyecto:
 
 ```bash
-
 cd pokemon-api
-
 ```
 
 Instalar dependencias:
 
 ```bash
-
 pnpm install
-
 ```
 
 ---
@@ -415,32 +550,49 @@ El proyecto utiliza PostgreSQL.
 Base de datos:
 
 ```text
-
 pokemon_api
-
 ```
 
 Configuración utilizada por el backend:
 
 ```text
-
 Host: localhost
-
 Puerto: 5432
-
 Usuario: postgres
-
 Base de datos: pokemon_api
-
 ```
 
 La configuración se encuentra en:
 
 ```text
-
 src/config/database.ts
-
 ```
+
+---
+
+# Variables de entorno
+
+Crear un archivo `.env` en la raíz del proyecto.
+
+Ejemplo:
+
+```env
+PORT=3000
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=TU_PASSWORD
+DB_NAME=pokemon_api
+
+ELEVENLABS_API_KEY=TU_API_KEY
+ELEVENLABS_AGENT_ID=TU_AGENT_ID
+ELEVENLABS_PHONE_NUMBER_ID=TU_PHONE_NUMBER_ID
+
+RAG_PUBLIC_URL=TU_URL_PUBLICA_DEL_TUNEL
+```
+
+> El archivo `.env` debe permanecer fuera del repositorio.
 
 ---
 
@@ -449,43 +601,47 @@ src/config/database.ts
 Para iniciar el proyecto:
 
 ```bash
-
 pnpm run dev
-
 ```
 
 El servidor queda disponible en:
 
 ```text
-
 http://localhost:3000
-
 ```
+
+Si se utiliza Cloudflare Quick Tunnel para exponer el RAG:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
+
+La URL pública generada debe configurarse en:
+
+```env
+RAG_PUBLIC_URL=
+```
+
+Después de modificar `.env`, reiniciar el backend.
 
 ---
 
 # Compilar el proyecto
 
 ```bash
-
 pnpm run build
-
 ```
 
 Los archivos compilados se generan dentro de:
 
 ```text
-
 dist/
-
 ```
 
 Para iniciar la versión compilada:
 
 ```bash
-
 pnpm start
-
 ```
 
 ---
@@ -493,444 +649,129 @@ pnpm start
 # Estructura del proyecto
 
 ```text
-
 pokemon-api/
-
 │
-
 ├── components/
-
 │   ├── pokemonAbilities.ts
-
 │   ├── pokemonEvolution.ts
-
 │   ├── pokemonHeader.ts
-
 │   ├── pokemonStats.ts
-
 │   └── main.ts
-
 │
-
 ├── src/
-
 │   ├── config/
-
 │   │   ├── database.ts
-
 │   │   └── testDatabase.ts
-
 │   │
-
 │   ├── controllers/
-
 │   │   ├── pokemon.controller.ts
-
 │   │   ├── collection.controller.ts
-
 │   │   └── favorite.controller.ts
-
 │   │
-
+│   ├── rag/
+│   │   ├── rag.routes.ts
+│   │   └── rag.service.ts
+│   │
 │   ├── routes/
-
 │   │   ├── pokemon.routes.ts
-
 │   │   ├── collection.routes.ts
-
 │   │   ├── favorite.routes.ts
-
-│   │   └── tools.routes.ts
-
+│   │   ├── tools.routes.ts
+│   │   └── elevenlabs.routes.ts
 │   │
-
 │   ├── services/
-
 │   │   ├── pokemon.service.ts
-
 │   │   ├── collection.service.ts
-
-│   │   └── favorite.service.ts
-
+│   │   ├── favorite.service.ts
+│   │   └── elevenlabs.service.ts
 │   │
-
 │   ├── tools/
-
 │   │   ├── search-pokemon.tool.ts
-
 │   │   ├── get-pokemon-details.tool.ts
-
 │   │   ├── compare-pokemon.tool.ts
-
 │   │   └── tool-simulator.ts
-
 │   │
-
 │   ├── app.ts
-
 │   └── server.ts
-
 │
-
 ├── tests/
-
 │   ├── unit/
-
 │   │   ├── pokemon.service.test.ts
-
 │   │   └── tools.test.ts
-
 │   │
-
 │   ├── integration/
-
 │   │   └── pokemon.routes.test.ts
-
 │   │
-
 │   └── interface/
-
 │       └── main.test.ts
-
 │
-
 ├── index.html
-
 ├── package.json
-
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
 ├── tsconfig.json
-
 ├── vitest.config.ts
-
 └── README.md
-
 ```
 
 ---
 
-# API
-
-## Obtener Pokémon
+# Flujo general del sistema
 
 ```text
-
-GET /api/pokemon/:id
-
-```
-
-Ejemplo:
-
-```text
-
-GET /api/pokemon/25
-
-```
-
----
-
-## Listar Pokémon
-
-```text
-
-GET /api/pokemon
-
-```
-
----
-
-## Buscar Pokémon
-
-```text
-
-GET /api/pokemon/search?name=pikachu
-
-```
-
----
-
-## Filtrar por tipo
-
-```text
-
-GET /api/pokemon?page=1&limit=20&type=electric
-
-```
-
----
-
-## Colecciones
-
-```text
-
-POST   /api/collections
-
-GET    /api/collections?organizationId=1
-
-PUT    /api/collections/:id
-
-DELETE /api/collections/:id?organizationId=1
-
-```
-
----
-
-## Favoritos
-
-```text
-
-POST   /api/collections/:collectionId/favorites
-
-GET    /api/collections/:collectionId/favorites?organizationId=1
-
-DELETE /api/collections/:collectionId/favorites/:pokemonId?organizationId=1
-
-```
-
----
-
-## Herramientas IA
-
-### Buscar Pokémon
-
-```text
-
-POST /api/tools/search
-
-```
-
-Body:
-
-```json
-
-{
-
-  "name": "pikachu"
-
-}
-
-```
-
-### Obtener detalles
-
-```text
-
-POST /api/tools/details
-
-```
-
-Body:
-
-```json
-
-{
-
-  "id": 25
-
-}
-
-```
-
-### Comparar Pokémon
-
-```text
-
-POST /api/tools/compare
-
-```
-
-Body:
-
-```json
-
-{
-
-  "pokemon1": "pikachu",
-
-  "pokemon2": "charizard"
-
-}
-
-```
-
-# Integración con ElevenLabs
-
-El proyecto incluye una integración con **ElevenLabs** para realizar llamadas telefónicas de prueba desde la aplicación.
-
-La integración permite ejecutar una llamada directamente desde el frontend mediante un botón y enviar información temporal para personalizar el comportamiento del agente durante la llamada.
-
-## Flujo de llamada
-
-El frontend envía la solicitud al backend:
-POST /api/elevenlabs/test-call
-El backend recibe:
-- toNumber: número de destino.
-- temporaryPrompt: prompt temporal opcional.
-- temporaryFirstMessage: mensaje inicial temporal opcional.
-Ejemplo de solicitud:
-{
-  "toNumber": "+573001234567",
-  "temporaryPrompt": "Atiende al usuario de forma cordial.",
-  "temporaryFirstMessage": "Hola, ¿cómo estás?"
-}
-El backend se encarga de comunicarse con ElevenLabs, manteniendo las credenciales fuera del frontend.
-
-## Configuración del agente
-
-La integración contempla configuración del agente mediante:
-- Prompt permanente.
-- Mensaje inicial permanente.
-- Prompt temporal para una llamada específica.
-- Mensaje inicial temporal para una llamada específica.
-Los prompts y mensajes temporales se envían únicamente cuando se requiere personalizar una llamada.
-
-# Integración con ElevenLabs
-
-El proyecto incluye una integración con **ElevenLabs** para realizar llamadas telefónicas de prueba desde la aplicación.
-
-La integración permite ejecutar una llamada directamente desde el frontend mediante un botón.
-
-## Funcionamiento
-
-El flujo de la llamada es:
-
-```text
-
 Frontend
-
    ↓
-
-Backend Node.js / Express
-
+Node.js + Express
    ↓
-
-API de ElevenLabs
-
+Controllers / Services
    ↓
-
-Llamada telefónica
-
+PokéAPI
+   ↓
+PostgreSQL
 ```
 
-Desde la aplicación se ingresa el número de destino y se presiona el botón:
+Para las herramientas IA:
 
 ```text
-
-Realizar llamada
-
+Agente IA
+   ↓
+Tools
+   ↓
+PokéAPI
 ```
 
-El backend procesa la solicitud y utiliza la API de ElevenLabs para iniciar la llamada.
+Para las consultas RAG mediante voz:
 
-## Prueba
-
-La integración fue probada realizando una llamada real de prueba hacia un número telefónico configurado.
-
-La llamada fue recibida correctamente.
-
-## Configuración
-
-Las credenciales de ElevenLabs deben mantenerse únicamente en el backend y no deben exponerse directamente en el frontend.
-
-Las variables utilizadas para la integración deben configurarse mediante variables de entorno.
-
-> Las credenciales reales de ElevenLabs no deben almacenarse directamente en el repositorio.
-
-## Documentación estudiada
-
-Durante el desarrollo se revisó la documentación de:
-
-- ElevenLabs API.
-
-- Integración de llamadas.
-
-- Configuración de agentes.
-
-- Parámetros necesarios para realizar llamadas de prueba.
-
-- NextVoice / NexterVoice.
-
-La integración con ElevenLabs se realizó utilizando el endpoint correspondiente para llamadas de prueba.
-
----
-
-**# RAG y consulta de información en tiempo real
-
-El proyecto incorpora una capa de RAG (Retrieval-Augmented Generation) conectada directamente con las herramientas de la API de Pokémon. En lugar de almacenar todos los datos de PokéAPI en una base vectorial, el sistema recupera la información actual desde la API y construye un contexto estructurado para el agente.
-Flujo del RAG
-Consulta del usuario
-        ↓
-/api/rag/query
-        ↓
-RAG Service
-        ↓
-/api/tools/details
-        ↓
-PokéAPI
-        ↓
-Contexto estructurado
-Endpoint:
-POST /api/rag/query
-Ejemplo de solicitud:
-{
-  "consulta": "charizard"
-}
-La respuesta incluye información como:
-- Nombre e ID.
-- Tipos.
-- Habilidades.
-- Estadísticas.
-- Evolución.
-Archivo principal:
-src/rag/rag.service.ts
-Ruta:
-src/rag/rag.routes.ts
-Acceso público mediante Cloudflare Tunnel
-Para realizar pruebas de integración en tiempo real, la API local se expone temporalmente mediante Cloudflare Tunnel.
-cloudflared tunnel --url http://localhost:3000
-Esto permite acceder temporalmente a rutas como:
-https://<url-generada>.trycloudflare.com/api/rag/query
-La ruta RAG fue probada tanto localmente como desde Internet y respondió correctamente con información real de Pokémon.
-La URL generada por Cloudflare Tunnel es temporal y puede cambiar cada vez que se inicia un nuevo túnel.
-
-Integración preparada con ElevenLabs
-El proyecto también cuenta con integración de ElevenLabs para realizar llamadas telefónicas desde la aplicación. La arquitectura queda preparada para que, durante una llamada, el agente pueda consultar información mediante herramientas HTTP y utilizar la respuesta como contexto para generar su respuesta hablada.
-
-Flujo previsto:
+```text
+Usuario
+   ↓
 Llamada telefónica
-        ↓
-ElevenLabs Agent
-        ↓
-Herramienta / Webhook
-        ↓
+   ↓
+ElevenLabs
+   ↓
+buscar_pokemon
+   ↓
+Cloudflare Tunnel
+   ↓
 /api/rag/query
-        ↓
-RAG + API Pokémon
-        ↓
-Información recuperada
-        ↓
-Respuesta del agente
-        ↓
-Voz durante la llamada
-La conexión final de la herramienta RAG dentro del agente de ElevenLabs queda pendiente de configurar desde el panel de ElevenLabs cuando se disponga de acceso.
-Mock de PokéAPI**
-Las pruebas automatizadas utilizan mocks para simular las respuestas de PokéAPI.
-
-Esto permite ejecutar las pruebas sin depender de:
-
-- Disponibilidad de PokéAPI.
-
-- Conexión a Internet.
-
-- Cambios en las respuestas del servicio externo.
-
-- Tiempo de respuesta del servicio externo.
-
-De esta forma, las pruebas pueden ejecutarse de manera controlada y reproducible.
+   ↓
+/api/tools/details
+   ↓
+PokéAPI
+   ↓
+Contexto RAG
+   ↓
+ElevenLabs
+   ↓
+Respuesta por voz
+```
 
 ---
 
 # Autor
 
-Proyecto desarrollado como ejercicio técnico utilizando TypeScript, Node.js, Express, PostgreSQL y PokéAPI.
+Proyecto desarrollado como ejercicio técnico utilizando:
+
+**TypeScript, Node.js, Express, PostgreSQL, PokéAPI, Vitest, ElevenLabs y herramientas de IA.**
 
 **Andrés Camargo**

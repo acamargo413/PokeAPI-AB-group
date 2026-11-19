@@ -7,6 +7,7 @@ import collectionRoutes from "./routes/collection.routes.js";
 import favoriteRoutes from "./routes/favorite.routes.js";
 import toolsRoutes from "./routes/tools.routes.js";
 import elevenlabsRoutes from "./routes/elevenlabs.routes.js";
+import ragRoutes from "./rag/rag.routes.js";
 
 const app = express();
 
@@ -44,6 +45,10 @@ app.use(
   elevenlabsRoutes
 );
 
+app.use(
+  "/api/rag",
+  ragRoutes
+);
 
 // ============================================================
 // FRONTEND

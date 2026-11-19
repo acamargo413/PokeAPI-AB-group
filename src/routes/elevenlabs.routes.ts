@@ -1,20 +1,24 @@
-
 import { Router } from "express";
 
 import {
   getAgentPrompt,
+  updateAgentPrompt,
   getAgentConfiguration,
   getAgentFirstMessage,
-  updateAgentPrompt,
   updateAgentFirstMessage,
-  makeTestCall
+  makeTestCall,
+  crearHerramientaRag,
+  configurarHerramientaRag,
+  listarHerramientas,
+  verificarHerramientaRag,
+  asociarHerramientaRag
 } from "../services/elevenlabs.service.js";
 
-const router = Router();
-
+const router =
+  Router();
 
 // ============================================================
-// GET PROMPT
+// PROMPT
 // ============================================================
 
 router.get(
@@ -33,20 +37,26 @@ router.get(
 
     } catch (error) {
 
+      console.error(
+        "Error obteniendo prompt:",
+        error
+      );
+
       return res.status(500).json({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
-            : "No se pudo obtener el prompt"
+            : "Error obteniendo el prompt."
       });
+
     }
+
   }
 );
 
-
 // ============================================================
-// PATCH PROMPT
+// ACTUALIZAR PROMPT
 // ============================================================
 
 router.patch(
@@ -66,9 +76,10 @@ router.patch(
 
         return res.status(400).json({
           success: false,
-          message:
-            "El campo prompt es obligatorio"
+          error:
+            "El prompt es obligatorio."
         });
+
       }
 
       const result =
@@ -79,7 +90,7 @@ router.patch(
       return res.json({
         success: true,
         message:
-          "Prompt actualizado correctamente",
+          "Prompt actualizado correctamente.",
         data:
           result
       });
@@ -93,18 +104,19 @@ router.patch(
 
       return res.status(500).json({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
-            : "No se pudo actualizar el prompt"
+            : "Error actualizando el prompt."
       });
+
     }
+
   }
 );
 
-
 // ============================================================
-// GET CONFIGURACIÓN COMPLETA
+// CONFIGURACIÓN
 // ============================================================
 
 router.get(
@@ -118,25 +130,31 @@ router.get(
 
       return res.json({
         success: true,
-        data: config
+        config
       });
 
     } catch (error) {
 
+      console.error(
+        "Error obteniendo configuración:",
+        error
+      );
+
       return res.status(500).json({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
-            : "No se pudo obtener la configuración"
+            : "Error obteniendo configuración."
       });
+
     }
+
   }
 );
 
-
 // ============================================================
-// GET MENSAJE INICIAL
+// FIRST MESSAGE
 // ============================================================
 
 router.get(
@@ -156,24 +174,25 @@ router.get(
     } catch (error) {
 
       console.error(
-        "Error obteniendo mensaje inicial:",
+        "Error obteniendo primer mensaje:",
         error
       );
 
       return res.status(500).json({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
-            : "No se pudo obtener el mensaje inicial"
+            : "Error obteniendo primer mensaje."
       });
+
     }
+
   }
 );
 
-
 // ============================================================
-// PATCH MENSAJE INICIAL
+// ACTUALIZAR FIRST MESSAGE
 // ============================================================
 
 router.patch(
@@ -193,9 +212,10 @@ router.patch(
 
         return res.status(400).json({
           success: false,
-          message:
-            "El campo firstMessage es obligatorio"
+          error:
+            "El primer mensaje es obligatorio."
         });
+
       }
 
       const result =
@@ -206,7 +226,7 @@ router.patch(
       return res.json({
         success: true,
         message:
-          "Mensaje inicial actualizado correctamente",
+          "Primer mensaje actualizado correctamente.",
         data:
           result
       });
@@ -214,24 +234,25 @@ router.patch(
     } catch (error) {
 
       console.error(
-        "Error actualizando mensaje inicial:",
+        "Error actualizando primer mensaje:",
         error
       );
 
       return res.status(500).json({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
-            : "No se pudo actualizar el mensaje inicial"
+            : "Error actualizando primer mensaje."
       });
+
     }
+
   }
 );
 
-
 // ============================================================
-// REALIZAR LLAMADA DE PRUEBA
+// LLAMADA
 // ============================================================
 
 router.post(
@@ -253,54 +274,23 @@ router.post(
 
         return res.status(400).json({
           success: false,
-          message:
-            "El campo toNumber es obligatorio"
+          error:
+            "El número de destino es obligatorio."
         });
-      }
 
-      if (
-        temporaryPrompt !== undefined &&
-        (
-          typeof temporaryPrompt !== "string" ||
-          !temporaryPrompt.trim()
-        )
-      ) {
-
-        return res.status(400).json({
-          success: false,
-          message:
-            "temporaryPrompt debe ser un texto válido"
-        });
-      }
-
-      if (
-        temporaryFirstMessage !== undefined &&
-        (
-          typeof temporaryFirstMessage !== "string" ||
-          !temporaryFirstMessage.trim()
-        )
-      ) {
-
-        return res.status(400).json({
-          success: false,
-          message:
-            "temporaryFirstMessage debe ser un texto válido"
-        });
       }
 
       const result =
         await makeTestCall(
           toNumber.trim(),
-          temporaryPrompt?.trim() ||
-            undefined,
-          temporaryFirstMessage?.trim() ||
-            undefined
+          temporaryPrompt,
+          temporaryFirstMessage
         );
 
       return res.json({
         success: true,
         message:
-          "Llamada enviada correctamente",
+          "Llamada iniciada correctamente.",
         data:
           result
       });
@@ -308,20 +298,203 @@ router.post(
     } catch (error) {
 
       console.error(
-        "Error en /test-call:",
+        "Error realizando llamada:",
         error
       );
 
       return res.status(500).json({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
-            : "No se pudo realizar la llamada"
+            : "Error realizando la llamada."
       });
+
     }
+
   }
 );
 
+// ============================================================
+// CREAR HERRAMIENTA RAG
+// ============================================================
+
+router.post(
+  "/create-rag-tool",
+  async (_req, res) => {
+
+    try {
+
+      const result =
+        await configurarHerramientaRag();
+
+      return res.json({
+        success: true,
+        message:
+          "Herramienta RAG configurada, actualizada y asociada correctamente.",
+        data:
+          result
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Error configurando herramienta RAG:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error configurando herramienta RAG."
+      });
+
+    }
+
+  }
+);
+
+// ============================================================
+// LISTAR / BUSCAR HERRAMIENTAS
+// ============================================================
+
+router.get(
+  "/tools",
+  async (_req, res) => {
+
+    try {
+
+      const result =
+        await listarHerramientas();
+
+      return res.json({
+        success: true,
+        data:
+          result
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Error listando herramientas:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error listando herramientas."
+      });
+
+    }
+
+  }
+);
+
+// ============================================================
+// VERIFICAR HERRAMIENTA
+// ============================================================
+
+router.get(
+  "/rag-tool/:toolId",
+  async (req, res) => {
+
+    try {
+
+      const {
+        toolId
+      } = req.params;
+
+      const environment =
+        typeof req.query.environment === "string"
+          ? req.query.environment
+          : "production";
+
+      const result =
+        await verificarHerramientaRag(
+          toolId,
+          environment
+        );
+
+      return res.json({
+        success: true,
+        message:
+          "Herramienta encontrada.",
+        data:
+          result
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Error verificando herramienta RAG:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error verificando herramienta RAG."
+      });
+
+    }
+
+  }
+);
+
+// ============================================================
+// ASOCIAR HERRAMIENTA RAG
+// ============================================================
+
+router.post(
+  "/attach-rag-tool",
+  async (req, res) => {
+
+    try {
+
+      const {
+        toolId
+      } = req.body ?? {};
+
+      const result =
+        await asociarHerramientaRag(
+          typeof toolId === "string"
+            ? toolId
+            : undefined
+        );
+
+      return res.json({
+        success: true,
+        message:
+          "Herramienta RAG asociada correctamente.",
+        data:
+          result
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Error asociando herramienta RAG:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error asociando herramienta RAG."
+      });
+
+    }
+
+  }
+);
 
 export default router;
