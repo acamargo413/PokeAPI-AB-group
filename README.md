@@ -232,6 +232,71 @@ Ejemplo de respuesta:
 }
 ```
 
+## Consulta visual y configuración de fuentes
+
+La página principal incluye una sección **Consulta visual de Pokémon**. La fuente predeterminada consulta el RAG de Pokémon existente y presenta el contexto en una ficha con imagen, tipos, estadísticas, habilidades y evolución.
+
+En **Fuentes de datos** se pueden agregar otras fuentes sin editar el código:
+
+### API REST
+
+1. Escribe un nombre para la fuente y selecciona **API REST**.
+2. Ingresa una URL que incluya `{query}` en el lugar donde se insertará el texto buscado.
+3. Selecciona `GET` o `POST`. Los headers se pueden ingresar como un objeto JSON.
+4. Pulsa **Agregar fuente**, selecciónala en **Consultar fuente**, escribe una búsqueda y pulsa **Consultar RAG**.
+
+Para `POST`, la consulta también se envía en el cuerpo como `{"query":"texto buscado"}`. La respuesta debe ser JSON. Cuando incluye una lista en `results`, `resultados`, `items`, `data` o `characters`, la interfaz presenta hasta 12 elementos como tarjetas; otras estructuras se muestran como JSON.
+
+Ejemplo con [Rick and Morty API](https://rickandmortyapi.com/documentation):
+
+```text
+Nombre: Rick and Morty
+Tipo: API REST
+URL: https://rickandmortyapi.com/api/character/?name={query}
+Método: GET
+Headers: (vacío)
+Consulta: Morty
+```
+
+Las APIs se consultan directamente desde el navegador, por lo que deben permitir CORS. La configuración se guarda en el almacenamiento local del navegador. No guardes secretos o credenciales privadas en los headers: esta integración de frontend no los protege.
+
+### Biblioteca de documentos RAG
+
+La sección **Biblioteca de documentos** muestra los grupos creados y los archivos que contiene cada uno. Al cargar uno o varios archivos, se puede elegir un grupo existente o escribir el nombre de uno nuevo. El menú **Documentos a consultar**, junto al buscador, permite elegir un grupo o consultar todos los documentos.
+
+Acciones disponibles:
+
+- **Crear:** subir un archivo e incorporarlo como contexto.
+- **Crear grupo:** escribir un nombre nuevo al cargar los primeros archivos.
+- **Agregar archivos:** seleccionar un grupo existente y cargar más archivos en él.
+- **Renombrar o eliminar grupo:** estas acciones aplican a todos los archivos del grupo.
+- **Leer:** revisar el contenido completo desde **Editar**.
+- **Actualizar:** cambiar el nombre o editar el texto extraído.
+- **Reemplazar:** conservar el documento y sustituir su contenido por el de otro archivo.
+- **Eliminar:** quitar un documento de la biblioteca.
+
+Se admiten TXT, Markdown, JSON, CSV y Excel `.xlsx` (primera hoja). CSV y XLSX se convierten a texto estructurado antes de guardarse. Los archivos se envían al backend y se almacenan en `data/rag-contexts.json`, que está excluido de Git. Los archivos pueden tener hasta 8 MB.
+
+Endpoints de administración:
+
+```text
+GET    /api/rag/contexts
+GET    /api/rag/contexts/:id
+POST   /api/rag/contexts
+PUT    /api/rag/contexts/:id
+DELETE /api/rag/contexts/:id
+GET    /api/rag/context-groups
+PUT    /api/rag/context-groups/:name
+DELETE /api/rag/context-groups/:name
+POST   /api/rag/contexts/query
+```
+
+En cada consulta, la aplicación puede combinar la fuente principal elegida (RAG Pokémon o una API configurada) con los archivos del grupo seleccionado. Para documentos, se buscan términos en el texto y se muestran hasta cinco fragmentos por archivo. Este mecanismo es búsqueda textual; no crea embeddings ni una base vectorial.
+
+### Alcance de estas fuentes
+
+Las fuentes API se guardan en el almacenamiento local del navegador; los documentos se guardan en el servidor. La consulta de documentos realiza búsqueda textual, mientras que la API configurada responde a la consulta que recibe. Esta vista no crea embeddings ni una base vectorial; el RAG de Pokémon existente sigue usando su propio endpoint y flujo.
+
 ---
 
 # Integración RAG + ElevenLabs

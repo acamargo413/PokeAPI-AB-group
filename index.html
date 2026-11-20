@@ -699,6 +699,130 @@
       cursor: not-allowed;
     }
 
+    /* ==========================================================
+       RAG EXPLORER
+    ========================================================== */
+
+    .rag-section {
+      margin-top: 30px;
+      padding: 25px;
+      background: linear-gradient(135deg, #fff 0%, #f5f7ff 100%);
+      border: 1px solid #e2e6f0;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(30, 41, 59, .08);
+    }
+
+    .rag-heading { margin-bottom: 18px; }
+    .rag-heading h2 { margin: 0 0 6px; }
+    .rag-heading p { margin: 0; color: #64748b; }
+    .rag-kicker { color: #5965c8; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .rag-form { display: flex; gap: 10px; }
+    .rag-context-picker { display: flex; flex-direction: column; gap: 6px; min-width: 220px; color: #475569; font-size: 12px; font-weight: 700; }
+    .rag-context-picker select { padding: 11px; border: 1px solid #cbd5e1; border-radius: 9px; background: #fff; font-size: 14px; }
+    .rag-form input { flex: 1; min-width: 0; padding: 13px 15px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; }
+    .rag-form input:focus { outline: 3px solid rgba(99, 102, 241, .16); border-color: #6366f1; }
+    .rag-form button { background: #4f46e5; font-weight: 700; }
+    .rag-status { min-height: 22px; margin: 12px 0 0; color: #64748b; font-size: 14px; }
+    .rag-result { margin-top: 18px; }
+    .rag-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; }
+    .rag-pagination[hidden] { display: none; }
+    .rag-pagination button { padding: 9px 14px; color: #fff; background: #4f46e5; }
+    .rag-pagination span { color: #475569; font-size: 13px; }
+    .rag-card { overflow: hidden; background: white; border: 1px solid #e2e8f0; border-radius: 14px; }
+    .rag-card-top { display: flex; align-items: center; gap: 20px; padding: 20px; background: radial-gradient(circle at 85% 10%, #dfe5ff, transparent 35%), linear-gradient(120deg, #f8fafc, #eef2ff); }
+    .rag-card-top img { width: 132px; height: 132px; object-fit: contain; }
+    .rag-card-top h3 { margin: 0 0 8px; font-size: 26px; text-transform: capitalize; }
+    .rag-number { color: #64748b; font-size: 13px; font-weight: 700; }
+    .rag-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .rag-tag { padding: 5px 10px; color: #4338ca; background: #e8eaff; border-radius: 20px; font-size: 12px; text-transform: capitalize; }
+    .rag-card-body { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; padding: 20px; }
+    .rag-card-body h4 { margin: 0 0 14px; }
+    .rag-stat { display: grid; grid-template-columns: 120px 1fr 32px; align-items: center; gap: 10px; margin: 10px 0; font-size: 13px; text-transform: capitalize; }
+    .rag-track { height: 8px; overflow: hidden; background: #edf0f6; border-radius: 99px; }
+    .rag-fill { height: 100%; background: linear-gradient(90deg, #818cf8, #4f46e5); border-radius: inherit; }
+    .rag-side { display: flex; flex-direction: column; gap: 16px; }
+    .rag-info-box { padding: 14px; background: #f8fafc; border: 1px solid #edf0f6; border-radius: 10px; }
+    .rag-info-box h4 { margin-bottom: 8px; }
+    .rag-info-box p { margin: 0; color: #475569; font-size: 14px; line-height: 1.6; text-transform: capitalize; }
+    .rag-json { margin-top: 14px; padding: 15px; color: #e2e8f0; background: #111827; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+    .rag-config { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+    .rag-config h3 { margin: 0 0 6px; }
+    .rag-config > p { color: #64748b; font-size: 14px; }
+    .rag-source-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .rag-source-field { display: flex; flex-direction: column; gap: 6px; color: #475569; font-size: 13px; font-weight: 700; }
+    .rag-source-field input, .rag-source-field select, .rag-source-field textarea { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; font-weight: 400; }
+    .rag-source-field textarea { min-height: 74px; resize: vertical; font-family: monospace; }
+    .rag-source-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+    .rag-source-actions button { background: #334155; }
+    .rag-source-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .rag-source-chip { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 99px; color: #475569; background: white; font-size: 12px; }
+    .rag-source-chip.active { color: #4338ca; border-color: #818cf8; background: #eef2ff; }
+    .rag-source-chip button { padding: 0 0 0 8px; color: inherit; background: transparent; font-size: 14px; }
+    .rag-source-help { margin: 7px 0 0; color: #64748b; font-size: 12px; font-weight: 400; }
+    .rag-context-library { margin-top: 22px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+    .rag-context-library h3 { margin: 0 0 6px; }
+    .rag-context-library > p { color: #64748b; font-size: 14px; }
+    .rag-doc-upload { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+    .rag-doc-upload input, .rag-doc-upload select { width: 100%; height: 42px; min-width: 0; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; }
+    .rag-doc-upload input[type="file"] { padding: 7px; }
+    .rag-doc-upload button { background: #4f46e5; }
+    .rag-doc-upload > button { grid-column: 1 / -1; justify-self: end; }
+    .rag-documents-list { display: grid; gap: 10px; margin-top: 14px; }
+    .rag-doc-group { padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+    .rag-doc-group-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; padding: 0 2px 8px; border-bottom: 1px solid #e2e8f0; }
+    .rag-doc-group-header strong { color: #334155; }
+    .rag-doc-group-header button { padding: 6px 9px; color: #4338ca; background: #eef2ff; font-size: 12px; }
+    .rag-doc-group-header .rag-delete-context { color: #fff; background: #b42332; }
+    .rag-document-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 13px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; }
+    .rag-document-row.selected { border-color: #818cf8; background: #f5f6ff; }
+    .rag-document-check { width: 18px; height: 18px; accent-color: #4f46e5; }
+    .rag-document-meta { min-width: 0; }
+    .rag-document-meta strong { display: block; overflow-wrap: anywhere; color: #1e293b; }
+    .rag-document-meta small { display: block; margin-top: 4px; color: #64748b; }
+    .rag-document-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .rag-document-actions button { padding: 7px 10px; background: #475569; font-size: 12px; }
+    .rag-document-actions .rag-delete-context { background: #b42332; }
+    .rag-doc-empty { padding: 16px; color: #64748b; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; text-align: center; }
+    .rag-context-matches { display: grid; gap: 10px; margin-top: 14px; }
+    .rag-context-match { padding: 14px; background: white; border: 1px solid #cbd5e1; border-radius: 10px; }
+    .rag-context-match h4 { margin: 0 0 8px; }
+    .rag-context-match p { margin: 6px 0 0; color: #475569; font-size: 14px; line-height: 1.5; }
+    .rag-edit-dialog { width: min(760px, calc(100% - 28px)); max-height: 90vh; padding: 22px; border: 1px solid #cbd5e1; border-radius: 14px; }
+    .rag-edit-dialog::backdrop { background: rgba(15,23,42,.5); }
+    .rag-edit-dialog h3 { margin-top: 0; }
+    .rag-edit-dialog label { display: block; margin: 12px 0 6px; font-weight: 700; }
+    .rag-edit-dialog input, .rag-edit-dialog textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .rag-edit-dialog textarea { min-height: 240px; resize: vertical; }
+    .rag-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .rag-data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .rag-data-card { min-width: 0; padding: 15px; overflow: hidden; background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
+    .rag-data-card > img { width: 100%; height: 150px; margin-bottom: 10px; object-fit: contain; background: #f8fafc; border-radius: 8px; }
+    .rag-data-card h4 { margin: 0 0 10px; color: #1e293b; font-size: 16px; }
+    .rag-data-card dl { margin: 0; }
+    .rag-data-card dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid #f1f5f9; font-size: 12px; }
+    .rag-data-card dt { color: #64748b; text-transform: capitalize; }
+    .rag-data-card dd { margin: 0; color: #334155; text-align: right; }
+
+    @media (max-width: 600px) {
+      .rag-section { padding: 16px; }
+      .rag-form, .rag-card-top { flex-direction: column; align-items: stretch; }
+      .rag-context-picker { min-width: 0; }
+      .rag-form button { width: 100%; }
+      .rag-card-top { align-items: center; text-align: center; }
+      .rag-card-body { grid-template-columns: 1fr; }
+      .rag-tags { justify-content: center; }
+      .rag-stat { grid-template-columns: 105px 1fr 28px; gap: 7px; }
+      .rag-source-grid { grid-template-columns: 1fr; }
+      .rag-source-actions { align-items: stretch; flex-direction: column; }
+      .rag-pagination { gap: 7px; }
+      .rag-pagination button { padding: 8px 10px; }
+      .rag-pagination span { font-size: 12px; }
+      .rag-doc-upload { grid-template-columns: 1fr; }
+      .rag-doc-upload > button { grid-column: auto; justify-self: stretch; width: 100%; }
+      .rag-document-row { grid-template-columns: auto minmax(0,1fr); }
+      .rag-document-actions { grid-column: 1 / -1; justify-content: flex-start; }
+    }
+
     .call-test-status {
       margin-top: 15px;
 
@@ -1017,6 +1141,103 @@
     ======================================================= -->
 
     <section id="details"></section>
+
+    <section class="rag-section" aria-labelledby="ragTitle">
+      <div class="rag-heading">
+        <span class="rag-kicker">Pokédex inteligente · RAG</span>
+        <h2 id="ragTitle">Consulta visual de Pokémon</h2>
+        <p>Pregunta por un Pokémon y explora el contexto que recupera el sistema.</p>
+      </div>
+      <form id="ragForm" class="rag-form">
+        <label class="rag-context-picker">Documentos a consultar
+          <select id="ragQueryContext">
+            <option value="">No incluir documentos</option>
+            <option value="*">Todos los documentos</option>
+          </select>
+        </label>
+        <input id="ragQuery" type="text" placeholder="Ej: Pikachu" autocomplete="off" aria-label="Nombre o ID del Pokémon">
+        <button id="ragSubmit" type="submit">Consultar RAG</button>
+      </form>
+      <p id="ragStatus" class="rag-status" aria-live="polite">Escribe un nombre o ID para comenzar.</p>
+      <div id="ragResult" class="rag-result" aria-live="polite"></div>
+      <nav id="ragPagination" class="rag-pagination" aria-label="Paginación de resultados RAG" hidden></nav>
+      <div id="ragContextResults" class="rag-context-matches" aria-live="polite"></div>
+      <div class="rag-config">
+        <h3>Fuentes API</h3>
+        <p>Agrega APIs externas. Puedes consultar una API junto con los archivos del grupo elegido.</p>
+        <div class="rag-source-grid">
+          <label class="rag-source-field">Nombre de la fuente
+            <input id="ragSourceName" type="text" placeholder="Ej: Catálogo de productos">
+          </label>
+          <label class="rag-source-field">Tipo
+            <select id="ragSourceType">
+              <option value="api">API REST</option>
+            </select>
+          </label>
+          <label class="rag-source-field" id="ragApiUrlField">URL de consulta
+            <input id="ragSourceUrl" type="url" placeholder="https://api.ejemplo.com/items?search={query}">
+            <span class="rag-source-help">Incluye {query} donde debe insertarse la búsqueda. La API debe permitir CORS.</span>
+          </label>
+          <label class="rag-source-field" id="ragApiMethodField">Método
+            <select id="ragSourceMethod"><option>GET</option><option>POST</option></select>
+          </label>
+          <label class="rag-source-field" id="ragApiHeadersField">Headers (JSON, opcional)
+            <textarea id="ragSourceHeaders" placeholder='{"Authorization":"Bearer token"}'></textarea>
+          </label>
+        </div>
+        <div class="rag-source-actions">
+          <button id="ragAddSource" type="button">Agregar fuente</button>
+          <label class="rag-source-field" style="flex:1">Consultar fuente
+            <select id="ragActiveSource">
+              <option value="pokemon">RAG de Pokémon (actual)</option>
+              <option value="documents">Solo documentos</option>
+            </select>
+            <span class="rag-source-help">Elige «Solo documentos» para no consultar Pokémon ni una API.</span>
+          </label>
+        </div>
+        <div id="ragSourceList" class="rag-source-list" aria-live="polite"></div>
+      </div>
+      <div class="rag-context-library">
+        <h3>Biblioteca de documentos</h3>
+        <p>Los grupos solo organizan los archivos. Tú eliges qué grupo consultar y qué buscar; el sistema devuelve los fragmentos coincidentes.</p>
+        <div class="rag-doc-upload">
+          <label class="rag-source-field">Grupo de destino
+            <select id="ragDocumentGroup">
+              <option value="__new">Crear grupo nuevo…</option>
+            </select>
+          </label>
+          <label id="ragNewGroupField" class="rag-source-field">Nombre del grupo nuevo
+            <input id="ragNewGroupName" type="text" placeholder="Ej: Productos">
+          </label>
+          <label class="rag-source-field">Archivo(s)
+            <input id="ragDocumentFile" type="file" accept=".txt,.md,.json,.csv,.xlsx" multiple>
+            <span class="rag-source-help">Puedes subir varios archivos al mismo grupo. TXT, Markdown, JSON, CSV y XLSX.</span>
+          </label>
+          <button id="ragUploadDocument" type="button">Agregar archivos al grupo</button>
+        </div>
+        <p id="ragDocumentStatus" class="rag-status" aria-live="polite">Cargando documentos...</p>
+        <div id="ragDocumentCount" class="rag-source-help"></div>
+        <div id="ragDocumentsList" class="rag-documents-list"></div>
+      </div>
+    </section>
+
+    <dialog id="ragEditDialog" class="rag-edit-dialog">
+      <form id="ragEditForm">
+        <h3>Editar documento</h3>
+        <input id="ragEditId" type="hidden">
+        <label for="ragEditName">Nombre</label>
+        <input id="ragEditName" type="text" required>
+        <label for="ragEditGroup">Grupo de documentos</label>
+        <input id="ragEditGroup" type="text" required>
+        <label for="ragEditContent">Contenido de texto</label>
+        <textarea id="ragEditContent" required></textarea>
+        <div class="rag-edit-actions">
+          <button id="ragEditCancel" type="button">Cancelar</button>
+          <button type="submit" style="background:#4f46e5">Guardar cambios</button>
+        </div>
+      </form>
+    </dialog>
+
 
 
     <!-- ======================================================
