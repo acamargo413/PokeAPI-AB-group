@@ -1,77 +1,48 @@
-const TOOLS_URL = "http://localhost:3000/api/tools";
+import { getCharacterFromApi } from "../services/pokemon.service.js";
 
 export interface RagPokemon {
   id: number;
   name: string;
-  image?: string;
+  image?: string | null;
   types: string[];
   abilities: string[];
-  stats: {
-    hp: number;
-    attack: number;
-    defense: number;
-    "special-attack": number;
-    "special-defense": number;
-    speed: number;
-  };
+  stats: Record<string, number>;
   evolution?: string[];
 }
 
 export const obtenerPokemonParaRag = async (
-  id: string
+  id: string,
+  source: "pokemon" | "rickandmorty" | "auto" = "auto"
 ): Promise<RagPokemon> => {
-  const response = await fetch(`${TOOLS_URL}/details`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ id }),
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Error consultando la API de Pokémon: ${response.status}`
-    );
-  }
-
-  const result = await response.json();
-
-  if (!result.success || !result.data) {
-    throw new Error("La API no devolvió información del Pokémon.");
-  }
-
-  return result.data;
+  return getCharacterFromApi(id, source);
 };
 
 export const construirContextoPokemon = (
   pokemon: RagPokemon
 ): string => {
   return `
-Información del Pokémon:
+Información del personaje:
 
 Nombre: ${pokemon.name}
 ID: ${pokemon.id}
+Imagen: ${pokemon.image || ""}
 Tipos: ${pokemon.types.join(", ")}
 Habilidades: ${pokemon.abilities.join(", ")}
 
 Estadísticas:
-HP: ${pokemon.stats.hp}
-Ataque: ${pokemon.stats.attack}
-Defensa: ${pokemon.stats.defense}
-Ataque especial: ${pokemon.stats["special-attack"]}
-Defensa especial: ${pokemon.stats["special-defense"]}
-Velocidad: ${pokemon.stats.speed}
+${Object.entries(pokemon.stats).map(([name, value]) => `${name}: ${value}`).join("\n") || "No disponibles"}
 
 Evolución: ${pokemon.evolution?.join(" → ") || "No disponible"}
 `.trim();
 };
 
 export const buscarContextoPokemon = async (
-  consulta: string
+  consulta: string,
+  source: "pokemon" | "rickandmorty" | "auto" = "auto"
 ): Promise<string> => {
   const pokemon = consulta.trim().toLowerCase();
 
-  const data = await obtenerPokemonParaRag(pokemon);
+  const data = await obtenerPokemonParaRag(pokemon, source);
 
   return construirContextoPokemon(data);
 };

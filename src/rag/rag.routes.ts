@@ -16,6 +16,38 @@ import {
 
 const router = Router();
 
+router.post("/api-query", async (req, res) => {
+  const { source, query } = req.body as {
+    source?: { url?: string; method?: "GET" | "POST"; headers?: Record<string, string> };
+    query?: string;
+  };
+
+  if (!source?.url || !query?.trim()) {
+    return res.status(400).json({ success: false, error: "La fuente y la consulta son obligatorias." });
+  }
+
+  try {
+    const url = source.url
+      .replaceAll("{query}", encodeURIComponent(query))
+      .replaceAll("{consulta}", encodeURIComponent(query));
+    const parsedUrl = new URL(url);
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) throw new Error("La URL debe usar HTTP o HTTPS.");
+
+    const method = source.method === "POST" ? "POST" : "GET";
+    const headers = { ...(source.headers || {}) };
+    const options: RequestInit = { method, headers };
+    if (method === "POST") {
+      options.headers = { "Content-Type": "application/json", ...headers };
+      options.body = JSON.stringify({ query });
+    }
+    const response = await fetch(parsedUrl, options);
+    if (!response.ok) throw new Error(`La API respondió con estado ${response.status}.`);
+    return res.json({ success: true, data: await response.json() });
+  } catch (error) {
+    return res.status(400).json({ success: false, error: error instanceof Error ? error.message : "No se pudo consultar la API." });
+  }
+});
+
 router.get("/contexts", async (_req, res) => {
   try {
     const contexts = await listRagContexts();
@@ -117,7 +149,7 @@ router.post("/contexts/query", async (req, res) => {
 
 router.post("/query", async (req, res) => {
   try {
-    const { consulta } = req.body;
+    const { consulta, source } = req.body as { consulta?: string; source?: "pokemon" | "rickandmorty" };
 
     if (!consulta) {
       return res.status(400).json({
@@ -126,7 +158,7 @@ router.post("/query", async (req, res) => {
       });
     }
 
-    const contexto = await buscarContextoPokemon(consulta);
+    const contexto = await buscarContextoPokemon(consulta, source || "auto");
 
     return res.json({
       success: true,

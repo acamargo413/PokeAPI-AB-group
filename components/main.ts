@@ -29,6 +29,33 @@ let ragResultRows: unknown[] | null = null;
 let ragResultData: unknown;
 let ragCurrentPage = 1;
 
+interface RagCoincidence {
+  id: string;
+  sourceName: string;
+  title: string;
+  score: number;
+  html: string;
+}
+
+let ragCoincidences: RagCoincidence[] = [];
+const RAG_MATCH_PAGE_SIZE = 10;
+let ragCoincidencePage = 1;
+let ragSelectedCoincidence = 0;
+
+function renderizarCoincidenciaSeleccionada(index = ragSelectedCoincidence): string {
+  const selected = ragCoincidences[index];
+  if (!selected) return "";
+  const totalPages = Math.max(1, Math.ceil(ragCoincidences.length / RAG_MATCH_PAGE_SIZE));
+  ragCoincidencePage = Math.min(Math.max(1, ragCoincidencePage), totalPages);
+  const start = (ragCoincidencePage - 1) * RAG_MATCH_PAGE_SIZE;
+  const options = ragCoincidences.slice(start, start + RAG_MATCH_PAGE_SIZE).map((match, optionIndex) => {
+    const matchIndex = start + optionIndex;
+    return `<button type="button" data-rag-match="${matchIndex}" class="${matchIndex === index ? "active" : ""}">${escaparHTML(match.title)} <small>· ${escaparHTML(match.sourceName)}</small></button>`;
+  }).join("");
+  const controls = totalPages > 1 ? `<button type="button" data-rag-match-page="${ragCoincidencePage - 1}" ${ragCoincidencePage === 1 ? "disabled" : ""}>Anterior</button><span>Página ${ragCoincidencePage} de ${totalPages}</span><button type="button" data-rag-match-page="${ragCoincidencePage + 1}" ${ragCoincidencePage === totalPages ? "disabled" : ""}>Siguiente</button>` : "";
+  return `<section class="rag-source-results"><h3>${escaparHTML(selected.sourceName)}</h3>${selected.html}</section><nav class="rag-pagination rag-match-list" aria-label="Coincidencias">${options}</nav>${controls ? `<nav class="rag-pagination rag-match-controls" aria-label="Paginación de coincidencias">${controls}</nav>` : ""}`;
+}
+
 interface RagConfiguredSource {
   id: string;
   name: string;
@@ -36,6 +63,10 @@ interface RagConfiguredSource {
   url?: string;
   method?: "GET" | "POST";
   headers?: Record<string, string>;
+  itemsPath?: string;
+  titlePath?: string;
+  imagePath?: string;
+  descriptionPath?: string;
 }
 
 interface RagDocumentMeta {
@@ -148,28 +179,36 @@ async function parsearXLSX(file: File): Promise<Record<string, unknown>[]> {
 
 async function consultarFuenteRag(source: RagConfiguredSource, query: string): Promise<unknown> {
   if (!source.url) throw new Error("La fuente no tiene una URL configurada.");
-  const encodedQuery = encodeURIComponent(query);
-  const url = source.url.replaceAll("{query}", encodedQuery);
-  const options: RequestInit = { method: source.method || "GET", headers: source.headers || {} };
-  if (options.method === "POST") {
-    options.headers = { "Content-Type": "application/json", ...(source.headers || {}) };
-    options.body = JSON.stringify({ query });
-  }
-  const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`La API respondió con estado ${response.status}.`);
-  return response.json();
+  const response = await fetch("/api/rag/api-query", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source, query })
+  });
+  const result = await response.json() as { success?: boolean; data?: unknown; error?: string };
+  if (!response.ok || !result.success) throw new Error(result.error || "No se pudo consultar la API.");
+  return result.data;
 }
 
-function extraerFilasFuenteRag(data: unknown): unknown[] | null {
+function valorPorRutaRag(data: unknown, path?: string): unknown {
+  if (!path?.trim()) return undefined;
+  return path.replace(/\[(\d+)\]/g, ".$1").split(".").reduce<unknown>((current, key) => {
+    if (!current || typeof current !== "object") return undefined;
+    return (current as Record<string, unknown>)[key];
+  }, data);
+}
+
+function extraerFilasFuenteRag(data: unknown, itemsPath?: string): unknown[] | null {
+  const mappedItems = valorPorRutaRag(data, itemsPath);
+  if (Array.isArray(mappedItems)) return mappedItems;
   let rows: unknown[] | null = Array.isArray(data) ? data : null;
   if (!rows && data && typeof data === "object") {
     const objectData = data as Record<string, unknown>;
-    for (const key of ["resultados", "results", "items", "data", "characters"]) {
+    for (const key of ["resultados", "results", "items", "data", "characters", "collection", "meals"]) {
       const candidate = objectData[key];
       if (Array.isArray(candidate)) { rows = candidate; break; }
       if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
         const nested = candidate as Record<string, unknown>;
-        for (const nestedKey of ["results", "items", "data"]) {
+        for (const nestedKey of ["results", "items", "data", "characters", "meals"]) {
           if (Array.isArray(nested[nestedKey])) { rows = nested[nestedKey] as unknown[]; break; }
         }
         if (rows) break;
@@ -179,7 +218,122 @@ function extraerFilasFuenteRag(data: unknown): unknown[] | null {
   return rows;
 }
 
-function renderizarResultadoFuente(data: unknown, rows: unknown[] | null, offset = 0): string {
+function textoParaRelevancia(item: unknown): string {
+  if (item === null || item === undefined) return "";
+  if (typeof item === "string" || typeof item === "number") return String(item);
+  if (Array.isArray(item)) return item.slice(0, 5).map(textoParaRelevancia).join(" ");
+  if (typeof item === "object") {
+    return Object.entries(item as Record<string, unknown>)
+      .slice(0, 12)
+      .map(([key, value]) => `${key} ${textoParaRelevancia(value)}`)
+      .join(" ");
+  }
+  return "";
+}
+
+function puntuarResultadoRag(item: unknown, query: string): number {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const record = item && typeof item === "object" && !Array.isArray(item)
+    ? item as Record<string, unknown>
+    : {};
+  const title = [record.name, record.title, record.nombre, record.id]
+    .find(value => typeof value === "string" || typeof value === "number");
+  const normalizedTitle = String(title ?? "").toLocaleLowerCase();
+  const text = textoParaRelevancia(item).toLocaleLowerCase();
+  if (normalizedTitle === normalizedQuery) return 1000;
+  if (normalizedTitle.includes(normalizedQuery)) return 500;
+  if (text.includes(normalizedQuery)) return 100;
+  return 0;
+}
+
+function obtenerImagenFuenteRag(record: Record<string, unknown>): string {
+  if (typeof record.image === "string" && /^https:\/\//i.test(record.image)) {
+    return record.image;
+  }
+
+  // NASA EPIC entrega el nombre de imagen y su fecha; la foto se aloja en el archivo EPIC.
+  if (typeof record.image === "string" && typeof record.date === "string") {
+    const date = record.date.slice(0, 10).replaceAll("-", "/");
+    if (/^\d{4}\/\d{2}\/\d{2}$/.test(date)) {
+      return `https://epic.gsfc.nasa.gov/archive/natural/${date}/png/${record.image}.png`;
+    }
+  }
+
+  return "";
+}
+
+function buscarValorRag(
+  value: unknown,
+  matcher: (key: string, candidate: unknown) => boolean,
+  depth = 0
+): unknown {
+  if (!value || typeof value !== "object" || depth > 3) return undefined;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = buscarValorRag(item, matcher, depth + 1);
+      if (found !== undefined) return found;
+    }
+    return undefined;
+  }
+  for (const [key, candidate] of Object.entries(value as Record<string, unknown>)) {
+    if (matcher(key, candidate)) return candidate;
+  }
+  for (const candidate of Object.values(value as Record<string, unknown>)) {
+    if (candidate && typeof candidate === "object") {
+      const found = buscarValorRag(candidate, matcher, depth + 1);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+}
+
+function obtenerTituloFuenteRag(record: Record<string, unknown>, fallback: string, titlePath?: string): string {
+  const mappedTitle = valorPorRutaRag(record, titlePath);
+  if (typeof mappedTitle === "string" || typeof mappedTitle === "number") return String(mappedTitle);
+  const title = buscarValorRag(record, (key, value) =>
+    ["name", "title", "nombre", "label", "strMeal"].includes(key) &&
+    (typeof value === "string" || typeof value === "number")
+  );
+  return title === undefined ? fallback : String(title);
+}
+
+function obtenerImagenGenericaRag(record: Record<string, unknown>, imagePath?: string): string {
+  const mappedImage = valorPorRutaRag(record, imagePath);
+  if (typeof mappedImage === "string" && /^https:\/\//i.test(mappedImage)) return mappedImage;
+  const knownImage = obtenerImagenFuenteRag(record);
+  if (knownImage) return knownImage;
+  const image = buscarValorRag(record, (key, value) =>
+    ((/(?:image|thumbnail|thumb|poster|avatar|photo|cover)/i.test(key)) ||
+      (key === "href" && typeof value === "string" && /\.(?:png|jpe?g|webp)(?:$|\?)/i.test(value))) &&
+    typeof value === "string" && /^https:\/\//i.test(value)
+  );
+  return typeof image === "string" ? image : "";
+}
+
+function camposSimplesRag(record: Record<string, unknown>, title: string): Array<[string, string]> {
+  const fields: Array<[string, string]> = [];
+  const visit = (value: unknown, prefix = "", depth = 0): void => {
+    if (fields.length >= 6 || depth > 2 || value === null || value === undefined) return;
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      if (!/image|thumbnail|thumb|poster|avatar|photo|url/i.test(prefix) && String(value) !== title) {
+        fields.push([prefix || "valor", String(value)]);
+      }
+      return;
+    }
+    if (Array.isArray(value)) {
+      const values = value.filter(item => typeof item === "string" || typeof item === "number").slice(0, 3);
+      if (values.length) fields.push([prefix, values.join(", ")]);
+      return;
+    }
+    if (typeof value === "object") {
+      Object.entries(value as Record<string, unknown>).forEach(([key, item]) => visit(item, prefix ? `${prefix}.${key}` : key, depth + 1));
+    }
+  };
+  visit(record);
+  return fields;
+}
+
+function renderizarResultadoFuente(data: unknown, rows: unknown[] | null, offset = 0, source?: RagConfiguredSource): string {
   if (rows) {
     if (!rows.length) return "<div class=\"rag-info-box\">No se encontraron coincidencias.</div>";
     const cards = rows.slice(0, 12).map((item, index) => {
@@ -187,15 +341,14 @@ function renderizarResultadoFuente(data: unknown, rows: unknown[] | null, offset
         return `<article class="rag-data-card"><h4>Resultado ${offset + index + 1}</h4><p>${escaparHTML(String(item))}</p></article>`;
       }
       const record = item as Record<string, unknown>;
-      const titleKey = ["name", "title", "nombre", "id"].find(key => record[key] !== undefined);
-      const title = titleKey ? String(record[titleKey]) : `Resultado ${offset + index + 1}`;
-      const imageUrl = typeof record.image === "string" && /^https:\/\//i.test(record.image) ? record.image : "";
-      const fields = Object.entries(record).filter(([key, value]) => key !== titleKey && key !== "image" && key !== "url" && value !== null && value !== undefined && typeof value !== "object").slice(0, 5);
-      const nestedFields = Object.entries(record).filter(([key, value]) => key !== "image" && key !== "url" && value && typeof value === "object" && !Array.isArray(value)).slice(0, 2).map(([key, value]) => {
-        const nested = value as Record<string, unknown>;
-        return [key, nested.name ?? nested.title ?? Object.values(nested).filter(item => typeof item === "string").slice(0, 2).join(", ")];
-      });
-      return `<article class="rag-data-card">${imageUrl ? `<img src="${escaparHTML(imageUrl)}" alt="${escaparHTML(title)}" loading="lazy">` : ""}<h4>${escaparHTML(title)}</h4><dl>${[...fields, ...nestedFields].map(([key, value]) => `<div><dt>${escaparHTML(String(key))}</dt><dd>${escaparHTML(String(value))}</dd></div>`).join("")}</dl></article>`;
+      const title = obtenerTituloFuenteRag(record, `Resultado ${offset + index + 1}`, source?.titlePath);
+      const imageUrl = obtenerImagenGenericaRag(record, source?.imagePath);
+      const fields = camposSimplesRag(record, title);
+      const description = valorPorRutaRag(record, source?.descriptionPath);
+      if (typeof description === "string" && description.trim()) {
+        fields.unshift(["descripción", description]);
+      }
+      return `<article class="rag-data-card">${imageUrl ? `<img src="${escaparHTML(imageUrl)}" alt="${escaparHTML(title)}" loading="lazy">` : ""}<h4>${escaparHTML(title)}</h4><dl>${fields.map(([key, value]) => `<div><dt>${escaparHTML(key)}</dt><dd>${escaparHTML(value)}</dd></div>`).join("")}</dl></article>`;
     }).join("");
     return `<div class="rag-data-grid">${cards}</div>`;
   }
@@ -239,6 +392,7 @@ function extraerCampoRag(contexto: string, etiqueta: string): string {
 function renderizarContextoRag(contexto: string): string {
   const nombre = extraerCampoRag(contexto, "Nombre");
   const id = extraerCampoRag(contexto, "ID");
+  const image = extraerCampoRag(contexto, "Imagen");
   const tipos = extraerCampoRag(contexto, "Tipos").split(",").map(item => item.trim()).filter(Boolean);
   const habilidades = extraerCampoRag(contexto, "Habilidades");
   const evolucion = extraerCampoRag(contexto, "Evolución");
@@ -247,15 +401,12 @@ function renderizarContextoRag(contexto: string): string {
     label,
     value: Number(extraerCampoRag(contexto, label)) || 0
   }));
-  const imageId = Number(id);
-  const image = Number.isFinite(imageId) && imageId > 0
-    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${imageId}.png`
-    : "";
+  const imageUrl = /^https:\/\//i.test(image) ? image : "";
 
   return `
     <article class="rag-card">
       <header class="rag-card-top">
-        ${image ? `<img src="${image}" alt="Ilustración de ${escaparHTML(nombre)}" loading="lazy">` : ""}
+        ${imageUrl ? `<img src="${escaparHTML(imageUrl)}" alt="Ilustración de ${escaparHTML(nombre)}" loading="lazy">` : ""}
         <div>
           <span class="rag-number">#${escaparHTML(id)}</span>
           <h3>${escaparHTML(nombre)}</h3>
@@ -295,6 +446,26 @@ function inicializarRagVisual(): void {
     mostrarPaginaResultadosRag(visual, pagination);
   });
 
+  visual.addEventListener("click", event => {
+    const target = event.target as HTMLElement;
+    const matchButton = target.closest<HTMLButtonElement>("[data-rag-match]");
+    const pageButton = target.closest<HTMLButtonElement>("[data-rag-match-page]");
+    if (matchButton) {
+      const index = Number(matchButton.dataset.ragMatch);
+      if (!Number.isInteger(index) || !ragCoincidences[index]) return;
+      ragSelectedCoincidence = index;
+      ragCoincidencePage = Math.floor(index / RAG_MATCH_PAGE_SIZE) + 1;
+      visual.innerHTML = renderizarCoincidenciaSeleccionada();
+      return;
+    }
+    if (pageButton) {
+      const page = Number(pageButton.dataset.ragMatchPage);
+      if (!Number.isInteger(page) || page < 1) return;
+      ragCoincidencePage = page;
+      visual.innerHTML = renderizarCoincidenciaSeleccionada();
+    }
+  });
+
   form.addEventListener("submit", async event => {
     event.preventDefault();
     const consulta = input.value.trim();
@@ -311,53 +482,110 @@ function inicializarRagVisual(): void {
     pagination.hidden = true;
     pagination.innerHTML = "";
     ragResultRows = null;
+    ragCoincidences = [];
+    ragCoincidencePage = 1;
+    ragSelectedCoincidence = 0;
 
     try {
-      const activeSourceId = (document.getElementById("ragActiveSource") as HTMLSelectElement | null)?.value || "pokemon";
+      const sourceSelector = document.getElementById("ragActiveSource") as HTMLSelectElement | null;
+      const activeSourceIds = sourceSelector
+        ? Array.from(sourceSelector.selectedOptions).map(option => option.value)
+        : ["pokemon"];
+      if (!activeSourceIds.length) activeSourceIds.push("pokemon");
       const contextSelection = queryContext.value;
       const selectedContextIds = contextSelection === "*"
         ? ragDocumentMetadata.map(item => item.id)
         : contextSelection
           ? ragDocumentMetadata.filter(item => item.groupName === contextSelection).map(item => item.id)
           : [];
-      if (activeSourceId === "documents" && !selectedContextIds.length) {
+      const wantsDocuments = activeSourceIds.includes("documents");
+      const builtInSources = [
+        ...(activeSourceIds.includes("pokemon") ? [{ id: "pokemon" as const, name: "PokéAPI" }] : []),
+        ...(activeSourceIds.includes("rickandmorty") ? [{ id: "rickandmorty" as const, name: "Rick and Morty API" }] : [])
+      ];
+      const apiSources = activeSourceIds
+        .filter(id => id !== "pokemon" && id !== "rickandmorty" && id !== "documents")
+        .map(id => ragConfiguredSources.find(source => source.id === id))
+        .filter((source): source is RagConfiguredSource => Boolean(source));
+
+      if (wantsDocuments && !selectedContextIds.length) {
         throw new Error("Elige un grupo en «Documentos a consultar».");
       }
-      try {
-        if (activeSourceId === "documents") {
-          status.textContent = `Buscando en ${selectedContextIds.length} archivos del grupo elegido...`;
-        } else if (activeSourceId !== "pokemon") {
-          const source = ragConfiguredSources.find(item => item.id === activeSourceId);
-          if (!source) throw new Error("Selecciona una fuente configurada.");
-          const data = await consultarFuenteRag(source, consulta);
-          ragResultData = data;
-          ragResultRows = extraerFilasFuenteRag(data);
-          ragCurrentPage = 1;
-          mostrarPaginaResultadosRag(visual, pagination);
-          status.textContent = `Resultados de la fuente ${source.name}.`;
-        } else {
+
+      let bestResult: { sourceName: string; score: number; html: string } | null = null;
+      const errors: string[] = [];
+      const builtInResults = await Promise.allSettled(builtInSources.map(async source => {
           const response = await fetch(RAG_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ consulta })
+            body: JSON.stringify({ consulta, source: source.id })
           });
           const result = await response.json() as RagResponse;
           if (!response.ok || !result.success || !result.contexto) throw new Error(result.error || "No se pudo consultar el RAG.");
-          visual.innerHTML = renderizarContextoRag(result.contexto);
-          status.textContent = `Contexto recuperado para ${result.consulta || consulta}.`;
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Error consultando la fuente.";
-        if (message.includes("estado 404")) {
-          visual.innerHTML = `<div class="rag-info-box">La API seleccionada no encontró coincidencias para “${escaparHTML(consulta)}”.</div>`;
-          status.textContent = "La fuente API no encontró coincidencias.";
+          return { source, contexto: result.contexto };
+      }));
+      for (const result of builtInResults) {
+        if (result.status === "fulfilled") {
+          const match: RagCoincidence = {
+            id: `builtin-${result.value.source.id}`,
+            sourceName: result.value.source.name,
+            title: extraerCampoRag(result.value.contexto, "Nombre"),
+            score: 1000,
+            html: renderizarContextoRag(result.value.contexto)
+          };
+          ragCoincidences.push(match);
+          bestResult = bestResult || match;
         } else {
-          visual.innerHTML = `<div class="ai-error"><strong>Falló la fuente principal.</strong><br>${escaparHTML(message)}</div>`;
-          status.textContent = message;
+          errors.push(result.reason instanceof Error ? result.reason.message : "Una fuente interna no pudo responder.");
         }
       }
 
-      if (selectedContextIds.length) {
+      const apiResults = await Promise.allSettled(apiSources.map(async source => ({
+        source,
+        data: await consultarFuenteRag(source, consulta)
+      })));
+      for (const result of apiResults) {
+        if (result.status === "fulfilled") {
+          const rows = extraerFilasFuenteRag(result.value.data, result.value.source.itemsPath);
+          const candidates = rows || [result.value.data];
+          candidates.slice(0, 50).forEach((item, index) => {
+            const record = item && typeof item === "object" && !Array.isArray(item)
+              ? item as Record<string, unknown>
+              : {};
+            const score = puntuarResultadoRag(item, consulta);
+            ragCoincidences.push({
+              id: `${result.value.source.id}-${index}`,
+              sourceName: result.value.source.name,
+              title: obtenerTituloFuenteRag(record, `Resultado ${index + 1}`),
+              score,
+              html: renderizarResultadoFuente(result.value.data, [item], 0, result.value.source)
+            });
+          });
+          const bestCandidate = candidates.reduce<{ item: unknown; score: number } | null>((best, item) => {
+            const score = puntuarResultadoRag(item, consulta);
+            return !best || score > best.score ? { item, score } : best;
+          }, null);
+          if (bestCandidate && (!bestResult || bestCandidate.score > bestResult.score)) {
+            bestResult = {
+              sourceName: result.value.source.name,
+              score: bestCandidate.score,
+              html: renderizarResultadoFuente(result.value.data, [bestCandidate.item], 0, result.value.source)
+            };
+          }
+        } else {
+          errors.push(result.reason instanceof Error ? result.reason.message : "Una API no pudo responder.");
+        }
+      }
+      ragCoincidences.sort((first, second) => second.score - first.score);
+      ragCoincidences = ragCoincidences.slice(0, 50);
+      visual.innerHTML = ragCoincidences.length
+        ? renderizarCoincidenciaSeleccionada(0)
+        : `<div class="ai-error"><strong>No hubo resultados.</strong><br>${escaparHTML(errors.join(" · ") || "No se pudo consultar ninguna fuente.")}</div>`;
+      status.textContent = errors.length
+        ? `Resultados recibidos con ${errors.length} fuente(s) con error.`
+        : ragCoincidences.length ? `${ragCoincidences.length} coincidencia(s) encontradas. Mostrando la más relevante.` : "No se encontraron coincidencias.";
+
+      if (wantsDocuments && selectedContextIds.length) {
         try {
           const response = await fetch("/api/rag/contexts/query", {
             method: "POST",
@@ -392,18 +620,26 @@ function inicializarFuentesRag(): void {
   const urlInput = document.getElementById("ragSourceUrl") as HTMLInputElement | null;
   const methodSelect = document.getElementById("ragSourceMethod") as HTMLSelectElement | null;
   const headersInput = document.getElementById("ragSourceHeaders") as HTMLTextAreaElement | null;
+  const itemsPathInput = document.getElementById("ragSourceItemsPath") as HTMLInputElement | null;
+  const titlePathInput = document.getElementById("ragSourceTitlePath") as HTMLInputElement | null;
+  const imagePathInput = document.getElementById("ragSourceImagePath") as HTMLInputElement | null;
+  const descriptionPathInput = document.getElementById("ragSourceDescriptionPath") as HTMLInputElement | null;
   const addButton = document.getElementById("ragAddSource");
   const activeSelect = document.getElementById("ragActiveSource") as HTMLSelectElement | null;
   const sourceList = document.getElementById("ragSourceList");
   let editingSourceId: string | null = null;
 
-  if (!typeSelect || !nameInput || !urlInput || !methodSelect || !headersInput || !addButton || !activeSelect || !sourceList) return;
+  if (!typeSelect || !nameInput || !urlInput || !methodSelect || !headersInput || !itemsPathInput || !titlePathInput || !imagePathInput || !descriptionPathInput || !addButton || !activeSelect || !sourceList) return;
 
   const refreshSources = (): void => {
-    const active = activeSelect.value;
-    activeSelect.innerHTML = `<option value="pokemon">RAG de Pokémon (actual)</option><option value="documents">Solo documentos seleccionados</option>${ragConfiguredSources.map(source => `<option value="${escaparHTML(source.id)}">${escaparHTML(source.name)} · API</option>`).join("")}`;
-    if (ragConfiguredSources.some(source => source.id === active) || active === "documents" || active === "pokemon") activeSelect.value = active;
-    sourceList.innerHTML = ragConfiguredSources.map(source => `<span class="rag-source-chip ${source.id === active ? "active" : ""}">${escaparHTML(source.name)} · API<button type="button" data-edit-rag-source="${escaparHTML(source.id)}" aria-label="Editar ${escaparHTML(source.name)}">✎</button><button type="button" data-remove-rag-source="${escaparHTML(source.id)}" aria-label="Eliminar ${escaparHTML(source.name)}">×</button></span>`).join("");
+    const selected = new Set(Array.from(activeSelect.selectedOptions).map(option => option.value));
+    if (!selected.size) selected.add("pokemon");
+    activeSelect.innerHTML = `<option value="pokemon">PokéAPI</option><option value="rickandmorty">Rick and Morty API</option><option value="documents">Documentos seleccionados</option>${ragConfiguredSources.map(source => `<option value="${escaparHTML(source.id)}">${escaparHTML(source.name)} · API</option>`).join("")}`;
+    Array.from(activeSelect.options).forEach(option => { option.selected = selected.has(option.value); });
+    const pokemonSource = `<span class="rag-source-chip ${selected.has("pokemon") ? "active" : ""}"><label><input type="checkbox" data-select-rag-source="pokemon" ${selected.has("pokemon") ? "checked" : ""}> PokéAPI</label></span>`;
+    const rickAndMortySource = `<span class="rag-source-chip ${selected.has("rickandmorty") ? "active" : ""}"><label><input type="checkbox" data-select-rag-source="rickandmorty" ${selected.has("rickandmorty") ? "checked" : ""}> Rick and Morty API</label></span>`;
+    const configuredSources = ragConfiguredSources.map(source => `<span class="rag-source-chip ${selected.has(source.id) ? "active" : ""}"><label><input type="checkbox" data-select-rag-source="${escaparHTML(source.id)}" ${selected.has(source.id) ? "checked" : ""}> ${escaparHTML(source.name)} · API</label><button type="button" data-edit-rag-source="${escaparHTML(source.id)}" aria-label="Editar ${escaparHTML(source.name)}">✎</button><button type="button" data-remove-rag-source="${escaparHTML(source.id)}" aria-label="Eliminar ${escaparHTML(source.name)}">×</button></span>`).join("");
+    sourceList.innerHTML = pokemonSource + rickAndMortySource + configuredSources;
   };
 
   activeSelect.addEventListener("change", refreshSources);
@@ -418,6 +654,10 @@ function inicializarFuentesRag(): void {
       urlInput.value = source.url || "";
       methodSelect.value = source.method || "GET";
       headersInput.value = JSON.stringify(source.headers || {}, null, 2);
+      itemsPathInput.value = source.itemsPath || "";
+      titlePathInput.value = source.titlePath || "";
+      imagePathInput.value = source.imagePath || "";
+      descriptionPathInput.value = source.descriptionPath || "";
       activeSelect.value = source.id;
       (addButton as HTMLButtonElement).textContent = "Guardar cambios";
       refreshSources();
@@ -432,8 +672,21 @@ function inicializarFuentesRag(): void {
       nameInput.value = "";
       urlInput.value = "";
       headersInput.value = "";
+      itemsPathInput.value = "";
+      titlePathInput.value = "";
+      imagePathInput.value = "";
+      descriptionPathInput.value = "";
     }
     guardarFuentesRag();
+    refreshSources();
+  });
+  sourceList.addEventListener("change", event => {
+    const target = event.target as HTMLInputElement;
+    const sourceId = target.dataset.selectRagSource;
+    if (!sourceId) return;
+    for (const option of Array.from(activeSelect.options)) {
+      if (option.value === sourceId) option.selected = target.checked;
+    }
     refreshSources();
   });
   addButton.addEventListener("click", async () => {
@@ -446,7 +699,6 @@ function inicializarFuentesRag(): void {
       };
       const url = urlInput.value.trim();
       if (!url) throw new Error("Indica la URL de consulta de la API.");
-      if (!url.includes("{query}")) throw new Error("La URL debe incluir {query} donde se enviará el texto buscado.");
       let headers: Record<string, string> = {};
       if (headersInput.value.trim()) {
         const parsed: unknown = JSON.parse(headersInput.value);
@@ -456,6 +708,10 @@ function inicializarFuentesRag(): void {
       source.url = url;
       source.method = methodSelect.value as "GET" | "POST";
       source.headers = headers;
+      source.itemsPath = itemsPathInput.value.trim() || undefined;
+      source.titlePath = titlePathInput.value.trim() || undefined;
+      source.imagePath = imagePathInput.value.trim() || undefined;
+      source.descriptionPath = descriptionPathInput.value.trim() || undefined;
       const wasEditing = editingSourceId !== null;
       if (editingSourceId) {
         ragConfiguredSources = ragConfiguredSources.map(item => item.id === editingSourceId ? source : item);
@@ -466,10 +722,17 @@ function inicializarFuentesRag(): void {
       editingSourceId = null;
       guardarFuentesRag();
       refreshSources();
-      activeSelect.value = savedId;
+      Array.from(activeSelect.options).forEach(option => {
+        option.selected = option.value === savedId;
+      });
+      refreshSources();
       nameInput.value = "";
       urlInput.value = "";
       headersInput.value = "";
+      itemsPathInput.value = "";
+      titlePathInput.value = "";
+      imagePathInput.value = "";
+      descriptionPathInput.value = "";
       (addButton as HTMLButtonElement).textContent = "Agregar fuente";
       const status = document.getElementById("ragStatus");
       if (status) status.textContent = `Fuente API ${source.name} ${wasEditing ? "actualizada" : "guardada"}.`;

@@ -1,10 +1,39 @@
 # Pokémon API
 
-API REST desarrollada con **TypeScript + Node.js + Express**, integrada con **PokéAPI** y **PostgreSQL**.
+## Adaptador de APIs externas
+
+El endpoint `POST /api/api-adapter/preview` transforma respuestas JSON de una
+API externa al formato usado por la interfaz (`id`, `name`, `image`, `types`,
+`abilities`, `stats` y `evolution`). No depende de una API concreta: se indica
+la URL, la ruta al arreglo de elementos y las rutas de los campos JSON.
+
+Ejemplo para Rick and Morty:
+
+```json
+{
+  "url": "https://rickandmortyapi.com/api/character?page=1",
+  "itemsPath": "results",
+  "fields": {
+    "id": "id",
+    "name": "name",
+    "image": "image",
+    "types": ["species", "gender"],
+    "abilities": ["status", "origin.name"],
+    "stats": { "episodios": "episode.length" },
+    "evolution": ["location.name"]
+  }
+}
+```
+
+Las rutas aceptan notación de puntos, por ejemplo `owner.name` o
+`items[0].title`. Para una API nueva se cambian esos valores de configuración,
+no el normalizador.
+
+API REST desarrollada con **TypeScript + Node.js + Express**, integrada con **PokéAPI**, **Rick and Morty API**, fuentes REST configurables y **PostgreSQL**.
 
 El proyecto incluye un frontend web para consultar Pokémon, buscar por nombre, filtrar por tipo, visualizar estadísticas, habilidades y evoluciones, además de gestionar colecciones y Pokémon favoritos.
 
-También incorpora herramientas para agentes de IA, un sistema RAG para consultar información actual de Pokémon y una integración con ElevenLabs para realizar consultas mediante llamadas telefónicas.
+También incorpora herramientas para agentes de IA, un sistema RAG multi-fuente y una integración con ElevenLabs para realizar consultas mediante llamadas telefónicas.
 
 ---
 
@@ -15,6 +44,8 @@ También incorpora herramientas para agentes de IA, un sistema RAG para consulta
 - Express
 - PostgreSQL
 - PokéAPI
+- Rick and Morty API
+- APIs REST externas configurables
 - Vitest
 - Supertest
 - JSDOM
@@ -170,9 +201,9 @@ y muestra las respuestas estructuradas en JSON.
 
 ---
 
-# RAG de Pokémon
+# RAG multi-fuente
 
-El proyecto incorpora un sistema RAG para consultar información actual de Pokémon.
+El proyecto incorpora un sistema RAG para consultar información desde PokéAPI, Rick and Morty, APIs REST configuradas por el usuario y documentos locales.
 
 El RAG actual no utiliza una base de datos vectorial ni embeddings. Su función consiste en obtener información actual mediante las herramientas internas del proyecto y construir un contexto estructurado para la consulta.
 
@@ -183,11 +214,9 @@ Consulta del usuario
         ↓
 /api/rag/query
         ↓
-buscar información del Pokémon
+Selección de fuentes
         ↓
-/api/tools/details
-        ↓
-PokéAPI
+PokéAPI / Rick and Morty / APIs externas / documentos
         ↓
 Construcción del contexto
         ↓
@@ -204,9 +233,12 @@ Ejemplo:
 
 ```json
 {
-  "consulta": "pikachu"
+  "consulta": "pikachu",
+  "source": "pokemon"
 }
 ```
+
+El campo opcional `source` acepta `pokemon` o `rickandmorty`. Si se omite, se utiliza detección automática.
 
 La respuesta contiene información estructurada como:
 
@@ -214,13 +246,9 @@ La respuesta contiene información estructurada como:
 - ID.
 - Tipos.
 - Habilidades.
-- HP.
-- Ataque.
-- Defensa.
-- Ataque especial.
-- Defensa especial.
-- Velocidad.
+- Estadísticas disponibles en la fuente.
 - Evolución.
+- Imagen.
 
 Ejemplo de respuesta:
 
@@ -234,18 +262,32 @@ Ejemplo de respuesta:
 
 ## Consulta visual y configuración de fuentes
 
-La página principal incluye una sección **Consulta visual de Pokémon**. La fuente predeterminada consulta el RAG de Pokémon existente y presenta el contexto en una ficha con imagen, tipos, estadísticas, habilidades y evolución.
+La página principal incluye una consulta visual que normaliza resultados de distintas fuentes y los presenta en una tarjeta común con título, imagen, descripción y metadatos. PokéAPI y Rick and Morty aparecen como fuentes internas independientes y seleccionables.
 
-En **Fuentes de datos** se pueden agregar otras fuentes sin editar el código:
+Se pueden marcar una o varias fuentes. Las consultas se ejecutan en paralelo, se puntúan por relevancia y se muestra una tarjeta a la vez. Las coincidencias se presentan como opciones paginadas de 10 elementos; se conservan hasta 50 resultados. Los controles `Anterior`, número de página y `Siguiente` permanecen debajo de las opciones.
+
+En **Fuentes API** se pueden agregar otras fuentes sin editar el código:
 
 ### API REST
 
 1. Escribe un nombre para la fuente y selecciona **API REST**.
-2. Ingresa una URL que incluya `{query}` en el lugar donde se insertará el texto buscado.
+2. Ingresa una URL. Para APIs de búsqueda, incluye `{query}` o `{consulta}` donde se insertará el texto buscado. Las APIs estáticas no necesitan marcador.
 3. Selecciona `GET` o `POST`. Los headers se pueden ingresar como un objeto JSON.
-4. Pulsa **Agregar fuente**, selecciónala en **Consultar fuente**, escribe una búsqueda y pulsa **Consultar RAG**.
+4. Opcionalmente configura las rutas JSON de resultados, título, imagen y descripción.
+5. Pulsa **Agregar fuente**, marca una o varias fuentes, escribe una búsqueda y pulsa **Consultar RAG**.
 
-Para `POST`, la consulta también se envía en el cuerpo como `{"query":"texto buscado"}`. La respuesta debe ser JSON. Cuando incluye una lista en `results`, `resultados`, `items`, `data` o `characters`, la interfaz presenta hasta 12 elementos como tarjetas; otras estructuras se muestran como JSON.
+Para `POST`, la consulta también se envía en el cuerpo como `{"query":"texto buscado"}`. La respuesta debe ser JSON. El backend actúa como proxy para evitar problemas CORS.
+
+### Mapeo global de JSON
+
+El formulario permite declarar rutas con notación de puntos y arreglos, por ejemplo `collection.items`, `data[0].title` o `links[0].href`:
+
+- **Ruta de resultados:** arreglo que contiene los elementos.
+- **Ruta del título:** nombre que se muestra en la coincidencia.
+- **Ruta de la imagen:** URL de imagen del elemento.
+- **Ruta de descripción:** texto descriptivo principal.
+
+Los campos son opcionales. Si no se completan, el visor intenta detectar automáticamente estructuras y nombres frecuentes como `results`, `items`, `data`, `characters`, `meals`, `name`, `title`, `image`, `imageUrl`, `thumbnail`, `poster`, `strMeal` y `strMealThumb`. El mapeo manual permite integrar respuestas no convencionales sin modificar el código.
 
 Ejemplo con [Rick and Morty API](https://rickandmortyapi.com/documentation):
 
@@ -258,7 +300,31 @@ Headers: (vacío)
 Consulta: Morty
 ```
 
-Las APIs se consultan directamente desde el navegador, por lo que deben permitir CORS. La configuración se guarda en el almacenamiento local del navegador. No guardes secretos o credenciales privadas en los headers: esta integración de frontend no los protege.
+Ejemplo con NASA Images:
+
+```text
+Nombre: NASA Images
+URL: https://images-api.nasa.gov/search?q={query}
+Método: GET
+Ruta de resultados: collection.items
+Ruta del título: data[0].title
+Ruta de imagen: links[0].href
+Ruta de descripción: data[0].description
+```
+
+Ejemplo con TheMealDB:
+
+```text
+Nombre: Recetas
+URL: https://www.themealdb.com/api/json/v1/1/search.php?s={query}
+Método: GET
+Ruta de resultados: meals
+Ruta del título: strMeal
+Ruta de imagen: strMealThumb
+Ruta de descripción: strInstructions
+```
+
+Las APIs externas se consultan desde el backend mediante `POST /api/rag/api-query`. La configuración se guarda en `localStorage`. No guardes secretos permanentes en los headers del navegador.
 
 ### Biblioteca de documentos RAG
 
@@ -291,11 +357,11 @@ DELETE /api/rag/context-groups/:name
 POST   /api/rag/contexts/query
 ```
 
-En cada consulta, la aplicación puede combinar la fuente principal elegida (RAG Pokémon o una API configurada) con los archivos del grupo seleccionado. Para documentos, se buscan términos en el texto y se muestran hasta cinco fragmentos por archivo. Este mecanismo es búsqueda textual; no crea embeddings ni una base vectorial.
+En cada consulta, la aplicación puede combinar PokéAPI, Rick and Morty, varias APIs configuradas y los archivos del grupo seleccionado. Para documentos, se buscan términos en el texto y se muestran hasta cinco fragmentos por archivo. Este mecanismo es búsqueda textual; no crea embeddings ni una base vectorial.
 
 ### Alcance de estas fuentes
 
-Las fuentes API se guardan en el almacenamiento local del navegador; los documentos se guardan en el servidor. La consulta de documentos realiza búsqueda textual, mientras que la API configurada responde a la consulta que recibe. Esta vista no crea embeddings ni una base vectorial; el RAG de Pokémon existente sigue usando su propio endpoint y flujo.
+Las fuentes API se guardan en el almacenamiento local del navegador; los documentos se guardan en el servidor. El sistema normaliza visualmente respuestas JSON, pero no puede inferir con total fiabilidad la semántica de cualquier API: para estructuras particulares se deben configurar las rutas JSON del mapeo.
 
 ---
 

@@ -728,6 +728,15 @@
     .rag-pagination[hidden] { display: none; }
     .rag-pagination button { padding: 9px 14px; color: #fff; background: #4f46e5; }
     .rag-pagination span { color: #475569; font-size: 13px; }
+    .rag-match-list { justify-content: flex-start; flex-wrap: wrap; gap: 8px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+    .rag-match-list button { min-height: 36px; padding: 7px 10px; color: #334155; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: none; transition: border-color .15s ease, background .15s ease, color .15s ease; }
+    .rag-match-list button:hover:not(:disabled) { color: #3730a3; background: #eef2ff; border-color: #818cf8; opacity: 1; }
+    .rag-match-list button.active { color: #fff; background: #4f46e5; border-color: #4f46e5; }
+    .rag-match-list button:disabled { color: #94a3b8; background: #f1f5f9; border-color: #e2e8f0; }
+    .rag-match-list button small { display: block; margin-top: 2px; color: inherit; font-weight: 400; opacity: .8; }
+    .rag-match-controls { min-height: 42px; margin-top: 8px; padding: 6px 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+    .rag-match-controls [data-rag-match-page] { color: #4338ca; background: transparent; border-color: transparent; }
+    .rag-match-controls [data-rag-match-page]:hover:not(:disabled) { background: #e0e7ff; border-color: #c7d2fe; }
     .rag-card { overflow: hidden; background: white; border: 1px solid #e2e8f0; border-radius: 14px; }
     .rag-card-top { display: flex; align-items: center; gap: 20px; padding: 20px; background: radial-gradient(circle at 85% 10%, #dfe5ff, transparent 35%), linear-gradient(120deg, #f8fafc, #eef2ff); }
     .rag-card-top img { width: 132px; height: 132px; object-fit: contain; }
@@ -1176,7 +1185,7 @@
           </label>
           <label class="rag-source-field" id="ragApiUrlField">URL de consulta
             <input id="ragSourceUrl" type="url" placeholder="https://api.ejemplo.com/items?search={query}">
-            <span class="rag-source-help">Incluye {query} donde debe insertarse la búsqueda. La API debe permitir CORS.</span>
+            <span class="rag-source-help">Incluye {query} o {consulta} para APIs de búsqueda. Déjalo sin marcador para APIs estáticas, como la imagen diaria de NASA.</span>
           </label>
           <label class="rag-source-field" id="ragApiMethodField">Método
             <select id="ragSourceMethod"><option>GET</option><option>POST</option></select>
@@ -1184,15 +1193,27 @@
           <label class="rag-source-field" id="ragApiHeadersField">Headers (JSON, opcional)
             <textarea id="ragSourceHeaders" placeholder='{"Authorization":"Bearer token"}'></textarea>
           </label>
+          <label class="rag-source-field">Ruta de resultados (opcional)
+            <input id="ragSourceItemsPath" type="text" placeholder="Ej: collection.items o meals">
+          </label>
+          <label class="rag-source-field">Ruta del título (opcional)
+            <input id="ragSourceTitlePath" type="text" placeholder="Ej: data[0].title o name">
+          </label>
+          <label class="rag-source-field">Ruta de la imagen (opcional)
+            <input id="ragSourceImagePath" type="text" placeholder="Ej: links[0].href o imageUrl">
+          </label>
+          <label class="rag-source-field">Ruta de descripción (opcional)
+            <input id="ragSourceDescriptionPath" type="text" placeholder="Ej: data[0].description">
+          </label>
         </div>
         <div class="rag-source-actions">
           <button id="ragAddSource" type="button">Agregar fuente</button>
-          <label class="rag-source-field" style="flex:1">Consultar fuente
-            <select id="ragActiveSource">
+          <label class="rag-source-field" style="flex:1">Fuentes a consultar
+            <select id="ragActiveSource" multiple size="4">
               <option value="pokemon">RAG de Pokémon (actual)</option>
               <option value="documents">Solo documentos</option>
             </select>
-            <span class="rag-source-help">Elige «Solo documentos» para no consultar Pokémon ni una API.</span>
+            <span class="rag-source-help">Puedes seleccionar una o varias fuentes con Ctrl/Cmd + clic.</span>
           </label>
         </div>
         <div id="ragSourceList" class="rag-source-list" aria-live="polite"></div>

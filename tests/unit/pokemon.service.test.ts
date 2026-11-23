@@ -193,4 +193,34 @@ describe("getPokemonFromApi", () => {
     );
   });
 
+  it("debe buscar un personaje de Rick and Morty cuando no existe en PokéAPI", async () => {
+
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      if (String(url).includes("pokeapi.co")) {
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+
+      return new Response(JSON.stringify({
+        results: [{
+          id: 1,
+          name: "Rick Sanchez",
+          image: "https://example.com/rick.jpg",
+          species: "Human",
+          gender: "Male",
+          status: "Alive",
+          origin: { name: "Earth (C-137)" },
+          location: { name: "Citadel of Ricks" },
+          episode: ["episode/1", "episode/2"]
+        }]
+      }), { status: 200 });
+    });
+
+    await expect(getPokemonFromApi("rick sanchez")).resolves.toMatchObject({
+      id: 1,
+      name: "Rick Sanchez",
+      types: ["Human", "Male"],
+      stats: { episodios: 2 }
+    });
+  });
+
 });

@@ -8,6 +8,7 @@ import favoriteRoutes from "./routes/favorite.routes.js";
 import toolsRoutes from "./routes/tools.routes.js";
 import elevenlabsRoutes from "./routes/elevenlabs.routes.js";
 import ragRoutes from "./rag/rag.routes.js";
+import apiAdapterRoutes from "./routes/api-adapter.routes.js";
 
 const app = express();
 
@@ -48,6 +49,11 @@ app.use(
 app.use(
   "/api/rag",
   ragRoutes
+);
+
+app.use(
+  "/api/api-adapter",
+  apiAdapterRoutes
 );
 
 // ============================================================
